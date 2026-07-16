@@ -69,7 +69,7 @@ export function Header({
         </div>
 
         {/* BYOK Controls Center */}
-        <div className="hidden lg:flex flex-1 max-w-2xl mx-4 items-center gap-2">
+        <div className="hidden lg:flex flex-1 max-w-3xl mx-4 items-center gap-2.5">
           {/* Provider Toggle Dropdown / Selector */}
           <div className="flex items-center bg-slate-900/90 border border-slate-700/60 rounded-xl p-1 shrink-0">
             <button
@@ -131,7 +131,7 @@ export function Header({
           </div>
 
           {/* Key Input Field */}
-          <form onSubmit={handleSaveKey} className="flex-1 flex items-center relative">
+          <form onSubmit={handleSaveKey} className="flex-1 flex items-center min-w-[320px] relative">
             <div className="relative flex-1">
               <Key className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
@@ -140,10 +140,10 @@ export function Header({
                 onChange={(e) => setTempKey(e.target.value)}
                 placeholder={
                   provider === 'groq'
-                    ? 'Paste Groq key (gsk_...)'
+                    ? 'Paste Groq API key (gsk_...)'
                     : provider === 'gemini' 
-                    ? 'Paste AIStudio Gemini key (AIza...)' 
-                    : 'Paste OpenAI secret key (sk-...)'
+                    ? 'Paste Google Gemini API key (AIza...)' 
+                    : 'Paste OpenAI API secret key (sk-...)'
                 }
                 data-testid="byok-api-key-input"
                 className="w-full pl-9 pr-9 py-2 bg-slate-900/90 border border-slate-700/60 rounded-xl text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/80 focus:ring-1 focus:ring-amber-500/50 transition-all"
