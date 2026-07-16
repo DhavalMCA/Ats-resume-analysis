@@ -69,7 +69,7 @@ export function Header({
         </div>
 
         {/* BYOK Controls Center */}
-        <div className="hidden lg:flex flex-1 max-w-3xl mx-4 items-center gap-2.5">
+        <div className="hidden lg:flex flex-1 items-center justify-center gap-2 max-w-4xl mx-2 min-w-0">
           {/* Provider Toggle Dropdown / Selector */}
           <div className="flex items-center bg-slate-900/90 border border-slate-700/60 rounded-xl p-1 shrink-0">
             <button
@@ -114,12 +114,12 @@ export function Header({
           </div>
 
           {/* Model Selector Dropdown */}
-          <div className="relative shrink-0">
+          <div className="relative shrink-0 max-w-[210px]">
             <select
               value={model}
               onChange={(e) => setModel(e.target.value)}
               data-testid="model-selector-dropdown"
-              className="appearance-none bg-slate-900/90 border border-slate-700/60 hover:border-slate-600 rounded-xl px-3 pr-8 py-2 text-xs font-mono font-medium text-amber-400 focus:outline-none focus:border-amber-500/80 focus:ring-1 focus:ring-amber-500/50 cursor-pointer transition-all"
+              className="w-full truncate appearance-none bg-slate-900/90 border border-slate-700/60 hover:border-slate-600 rounded-xl pl-3 pr-8 py-2 text-xs font-mono font-medium text-amber-400 focus:outline-none focus:border-amber-500/80 focus:ring-1 focus:ring-amber-500/50 cursor-pointer transition-all"
             >
               {currentModelOptions.map((opt) => (
                 <option key={opt.id} value={opt.id} className="bg-slate-900 text-slate-200">
@@ -131,8 +131,8 @@ export function Header({
           </div>
 
           {/* Key Input Field */}
-          <form onSubmit={handleSaveKey} className="flex-1 flex items-center min-w-[320px] relative">
-            <div className="relative flex-1">
+          <form onSubmit={handleSaveKey} className="flex-1 flex items-center min-w-[200px] max-w-md relative">
+            <div className="relative flex-1 min-w-0">
               <Key className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type={showKey ? 'text' : 'password'}
@@ -140,13 +140,13 @@ export function Header({
                 onChange={(e) => setTempKey(e.target.value)}
                 placeholder={
                   provider === 'groq'
-                    ? 'Paste Groq API key (gsk_...)'
+                    ? 'Paste Groq key (gsk_...)'
                     : provider === 'gemini' 
-                    ? 'Paste Google Gemini API key (AIza...)' 
-                    : 'Paste OpenAI API secret key (sk-...)'
+                    ? 'Paste Gemini key (AIza...)' 
+                    : 'Paste OpenAI key (sk-...)'
                 }
                 data-testid="byok-api-key-input"
-                className="w-full pl-9 pr-9 py-2 bg-slate-900/90 border border-slate-700/60 rounded-xl text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/80 focus:ring-1 focus:ring-amber-500/50 transition-all"
+                className="w-full pl-9 pr-9 py-2 bg-slate-900/90 border border-slate-700/60 rounded-xl text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/80 focus:ring-1 focus:ring-amber-500/50 transition-all truncate"
               />
               <button
                 type="button"
@@ -161,7 +161,7 @@ export function Header({
             <button
               type="submit"
               data-testid="save-api-key-btn"
-              className="ml-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 rounded-xl text-xs font-medium transition-all flex items-center gap-1 shrink-0"
+              className="ml-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 rounded-xl text-xs font-medium transition-all flex items-center gap-1 shrink-0"
             >
               {savedSuccess ? (
                 <>
@@ -176,7 +176,7 @@ export function Header({
         </div>
 
         {/* Right Action Icons */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           {/* Privacy Tooltip / Information Badge */}
           <div className="relative group hidden md:block">
             <button className="p-2 text-slate-400 hover:text-amber-400 hover:bg-slate-800/60 rounded-xl transition-all">
