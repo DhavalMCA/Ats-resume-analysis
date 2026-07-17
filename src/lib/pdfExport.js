@@ -295,3 +295,169 @@ export function exportChangesPdf({ fileName, result }) {
   doc.save(`Resume_Changes_${fileName ? fileName.replace(/\.[^/.]+$/, "") : "Rewrites"}.pdf`);
 }
 
+export function exportOptimizedResumePdf({ fileName, personalInfo, resumeText }) {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 18; // Standard 0.7-inch margins
+  const contentWidth = pageWidth - 2 * margin;
+  let y = 18;
+
+  // 1. Header (Name and contact details)
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(18);
+  doc.setTextColor(15, 23, 42); // slate-900
+  
+  const name = personalInfo.fullName?.trim() || 'Resume Candidate';
+  const nameWidth = doc.getTextWidth(name);
+  doc.text(name, (pageWidth - nameWidth) / 2, y);
+  y += 6;
+
+  // Job Title if present
+  if (personalInfo.jobTitle?.trim()) {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+    doc.setTextColor(71, 85, 105); // slate-600
+    const title = personalInfo.jobTitle.trim();
+    const titleWidth = doc.getTextWidth(title);
+    doc.text(title, (pageWidth - titleWidth) / 2, y);
+    y += 5;
+  }
+
+  // Contact details
+  const contacts = [];
+  if (personalInfo.email?.trim()) contacts.push(personalInfo.email.trim());
+  if (personalInfo.phone?.trim()) contacts.push(personalInfo.phone.trim());
+  if (personalInfo.location?.trim()) contacts.push(personalInfo.location.trim());
+  if (personalInfo.website?.trim()) contacts.push(personalInfo.website.trim());
+
+  if (contacts.length > 0) {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(100, 116, 139); // slate-500
+    const contactText = contacts.join('   |   ');
+    const contactWidth = doc.getTextWidth(contactText);
+    doc.text(contactText, (pageWidth - contactWidth) / 2, y);
+    y += 8;
+  }
+
+  // Thin line below contact info
+  doc.setLineWidth(0.3);
+  doc.setDrawColor(203, 213, 225); // slate-300
+  doc.line(margin, y, pageWidth - margin, y);
+  y += 8;
+
+  // 2. Parse and render body text line-by-line
+  const lines = (resumeText || '').split('\n');
+  
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(30, 41, 59); // slate-800
+  
+  const isSectionHeader = (line) => {
+    const trimmed = line.trim();
+    if (!trimmed) return false;
+    // Starts with #
+    if (trimmed.startsWith('#')) return true;
+    
+    // Check if it's all uppercase and one of the standard section names
+    const cleanStr = trimmed.toUpperCase().replace(/[^A-Z\s]/g, '').trim();
+    const standardHeaders = [
+      'EXPERIENCE', 'WORK EXPERIENCE', 'EDUCATION', 'SUMMARY', 
+      'PROFESSIONAL SUMMARY', 'SKILLS', 'TECHNICAL SKILLS', 
+      'PROJECTS', 'CERTIFICATIONS', 'PUBLICATIONS', 'LANGUAGES',
+      'SUMMARY OF QUALIFICATIONS', 'ORGANIZATIONS', 'AWARDS'
+    ];
+    return standardHeaders.some(h => cleanStr === h || cleanStr.startsWith(h + ' '));
+  };
+
+  const isBulletPoint = (line) => {
+    const trimmed = line.trim();
+    return trimmed.startsWith('-') || trimmed.startsWith('•') || trimmed.startsWith('*');
+  };
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+    if (!trimmed) {
+      y += 2.5; // empty space
+      continue;
+    }
+
+    if (isSectionHeader(line)) {
+      // Clean section header name
+      const headerName = trimmed.replace(/^#\s*/, '').trim();
+      
+      checkPageBreak(20);
+      y += 3; // space before section
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.setTextColor(15, 23, 42); // slate-900
+      doc.text(headerName, margin, y);
+      
+      // Draw horizontal underline
+      y += 2;
+      doc.setLineWidth(0.4);
+      doc.setDrawColor(148, 163, 184); // slate-400
+      doc.line(margin, y, pageWidth - margin, y);
+      y += 5.5;
+      
+    } else if (isBulletPoint(line)) {
+      // Bullet point bullet
+      const cleanBulletText = trimmed.replace(/^[-•*]\s*/, '').trim();
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9.5);
+      doc.setTextColor(30, 41, 59); // slate-800
+
+      // Split text into wrapped lines
+      // We indent bullets by 4mm and print text at 8mm
+      const indentTextX = margin + 5;
+      const bulletWidth = contentWidth - 5;
+      const wrappedLines = doc.splitTextToSize(cleanBulletText, bulletWidth);
+      
+      checkPageBreak(wrappedLines.length * 4.5);
+      
+      // Draw bullet circle
+      doc.setFont('helvetica', 'bold');
+      doc.text('•', margin + 1, y);
+      
+      doc.setFont('helvetica', 'normal');
+      for (let j = 0; j < wrappedLines.length; j++) {
+        doc.text(wrappedLines[j], indentTextX, y);
+        if (j < wrappedLines.length - 1) {
+          y += 4.5;
+        }
+      }
+      y += 5; // space between bullets
+      
+    } else {
+      // Standard line
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9.5);
+      doc.setTextColor(30, 41, 59); // slate-800
+      
+      const wrappedLines = doc.splitTextToSize(trimmed, contentWidth);
+      checkPageBreak(wrappedLines.length * 4.5);
+      
+      for (let j = 0; j < wrappedLines.length; j++) {
+        doc.text(wrappedLines[j], margin, y);
+        if (j < wrappedLines.length - 1) {
+          y += 4.5;
+        }
+      }
+      y += 5;
+    }
+  }
+
+  function checkPageBreak(neededHeight) {
+    if (y + neededHeight > pageHeight - margin) {
+      doc.addPage();
+      y = margin;
+    }
+  }
+
+  const cleanFileName = fileName ? fileName.replace(/\.[^/.]+$/, "") : "Optimized_Resume";
+  doc.save(`${cleanFileName}_Optimized.pdf`);
+}
+
+

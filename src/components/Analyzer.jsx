@@ -11,6 +11,7 @@ import { SuggestionCard } from './SuggestionCard';
 import { analyzeResume } from '../lib/llm';
 import { saveAnalysis } from '../lib/history';
 import { exportAnalysisReport, exportChangesPdf } from '../lib/pdfExport';
+import { OptimizedResumeView } from './OptimizedResumeView';
 import { 
   Sparkles, Download, RotateCcw, FileText, CheckCircle2, 
   AlertCircle, ChevronDown, ChevronUp, Key, ShieldCheck, FileSpreadsheet
@@ -44,6 +45,7 @@ export function Analyzer({
   const [errorMsg, setErrorMsg] = useState(null);
   const [activeHighlightText, setActiveHighlightText] = useState(null);
   const [toastMessage, setToastMessage] = useState(null);
+  const [viewMode, setViewMode] = useState('audit');
 
   // Restore state when item selected from History Drawer
   useEffect(() => {
@@ -331,181 +333,219 @@ export function Analyzer({
         </div>
       </div>
 
-      {/* Results Section (Dual Column Layout) */}
+      {/* Results Section */}
       {analysisResult && (
         <div id="results-section" className="max-w-7xl mx-auto px-4 pt-8 border-t border-slate-800/80 animate-fade-up space-y-6">
           
-          {/* Top Banner: Good Enough to Submit */}
-          {atsBefore >= 88 && (
-            <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-xs sm:text-sm text-emerald-300 flex items-start gap-3 shadow-lg">
-              <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
-              <div>
-                <span className="font-bold text-white">Good Enough to Submit! </span>
-                Your resume is already in submit-ready range ({atsBefore}/100). Below are a couple of high-impact rewrites. Everything else is optional polish — don't feel pressured to chase 100.
-              </div>
-            </div>
-          )}
+          {/* Workspace Tabs */}
+          <div className="flex border-b border-slate-800 pb-px">
+            <button
+              type="button"
+              onClick={() => setViewMode('audit')}
+              className={`px-6 py-3 text-sm font-heading font-extrabold border-b-2 transition-all flex items-center gap-2 ${
+                viewMode === 'audit'
+                  ? 'border-amber-500 text-amber-400 font-extrabold'
+                  : 'border-transparent text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <FileSpreadsheet className="w-4 h-4" />
+              <span>ATS Audit &amp; Analysis</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('optimize')}
+              className={`px-6 py-3 text-sm font-heading font-extrabold border-b-2 transition-all flex items-center gap-2 ${
+                viewMode === 'optimize'
+                  ? 'border-amber-500 text-amber-400 font-extrabold'
+                  : 'border-transparent text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Sparkles className="w-4 h-4 text-amber-400" />
+              <span>ATS Optimized Resume Builder</span>
+            </button>
+          </div>
 
-          {/* Dual Column Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            
-            {/* LEFT COLUMN: Sticky Canvas PDF Inspector (~58%) */}
-            <div className="lg:col-span-7 lg:sticky lg:top-24">
-              <PdfHighlightViewer
-                pages={parsedPdf?.pages}
-                aiDetectedLines={analysisResult.ai_detected_lines}
-                activeHighlightText={activeHighlightText}
-              />
-            </div>
-
-            {/* RIGHT COLUMN: Metrics & Rewrites (~42%) */}
-            <div className="lg:col-span-5 space-y-6">
-              
-              {/* Score Card Banner */}
-              <div className="p-6 bg-slate-900/90 border border-slate-800 rounded-3xl shadow-xl space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-heading font-extrabold text-lg text-white">ATS Impact Index</span>
-                    <span className="px-2.5 py-0.5 text-[10px] font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full shrink-0 whitespace-nowrap">
-                      +{scoreDelta > 0 ? scoreDelta : 0} PTS DELTA
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2 shrink-0 flex-wrap">
-                    <button
-                      type="button"
-                      onClick={handleExportChangesPdf}
-                      data-testid="export-changes-pdf-btn"
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-xl text-xs font-mono font-medium transition-all shrink-0 whitespace-nowrap shadow-sm"
-                      title="Export only bullet rewrites & changes to PDF"
-                    >
-                      <Download className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                      <span>Export Changes</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={handleExportPdf}
-                      data-testid="export-pdf-btn"
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-mono font-medium border border-slate-700 transition-all shrink-0 whitespace-nowrap shadow-sm"
-                      title="Export full ATS audit report to PDF"
-                    >
-                      <FileText className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      <span>Full Report</span>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap items-center justify-around gap-4 py-2">
-                  <AtsScoreRing score={atsBefore} label="Current Score" color="amber" size={105} />
-                  <div className="text-xl font-heading font-extrabold text-slate-500 hidden sm:block">→</div>
-                  <AtsScoreRing score={atsAfter} label="Optimized Target" color="emerald" size={105} />
-                </div>
-              </div>
-
-              {/* Recruiter HR Perspective */}
-              <HrPerspective hrPerspective={analysisResult.hr_perspective} />
-
-              {/* Authenticity Breakdown */}
-              <AuthenticityPanel
-                authenticityScore={analysisResult.authenticity_score}
-                dimensionScores={analysisResult.dimension_scores}
-              />
-
-              {/* Experience & Claims Realism */}
-              <ExperienceRealism
-                experienceRealism={analysisResult.experience_realism}
-                unverifiableClaims={analysisResult.unverifiable_claims}
-              />
-
-              {/* Flagged AI Patterns */}
-              <FlaggedPatterns
-                flaggedPatterns={analysisResult.flagged_patterns}
-                onSelectHighlight={setActiveHighlightText}
-              />
-
-              {/* Missing Keywords */}
-              {analysisResult.ats_missing_keywords?.length > 0 && (
-                <div className="p-5 bg-slate-900/90 border border-slate-800 rounded-2xl shadow-xl space-y-3">
-                  <h3 className="font-heading font-bold text-sm text-white flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-amber-400" /> Top Missing ATS Keywords
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {analysisResult.ats_missing_keywords.map((kw, idx) => (
-                      <span
-                        key={idx}
-                        className="px-2.5 py-1 text-xs font-mono font-medium bg-amber-500/10 text-amber-300 border border-amber-500/20 rounded-lg"
-                      >
-                        + {kw}
-                      </span>
-                    ))}
+          {viewMode === 'optimize' ? (
+            <OptimizedResumeView
+              originalText={parsedPdf?.fullText}
+              suggestions={analysisResult.suggestions}
+              fileName={parsedPdf?.fileName}
+            />
+          ) : (
+            <>
+              {/* Top Banner: Good Enough to Submit */}
+              {atsBefore >= 88 && (
+                <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-xs sm:text-sm text-emerald-300 flex items-start gap-3 shadow-lg">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold text-white">Good Enough to Submit! </span>
+                    Your resume is already in submit-ready range ({atsBefore}/100). Below are a couple of high-impact rewrites. Everything else is optional polish — don't feel pressured to chase 100.
                   </div>
                 </div>
               )}
 
-              {/* Rewrites Section */}
-              <div className="space-y-4 pt-2">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <h3 className="font-heading font-extrabold text-lg text-white">
-                    Strategic Bullet Rewrites
-                  </h3>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs font-mono text-slate-400">
-                      {suggestions.length} Suggestions
-                    </span>
-                    <button
-                      type="button"
-                      onClick={handleExportChangesPdf}
-                      className="flex items-center gap-1 px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-lg text-xs font-mono transition-colors"
-                      title="Download Changes PDF"
-                    >
-                      <Download className="w-3 h-3 text-amber-400" /> Export Changes PDF
-                    </button>
-                  </div>
+              {/* Dual Column Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                
+                {/* LEFT COLUMN: Sticky Canvas PDF Inspector (~58%) */}
+                <div className="lg:col-span-7 lg:sticky lg:top-24">
+                  <PdfHighlightViewer
+                    pages={parsedPdf?.pages}
+                    aiDetectedLines={analysisResult.ai_detected_lines}
+                    activeHighlightText={activeHighlightText}
+                  />
                 </div>
 
-                {/* Required Rewrites */}
-                {requiredRewrites.length > 0 && (
-                  <div className="space-y-3">
-                    <span className="text-xs font-mono font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1">
-                      Priority Impact Rewrites ({requiredRewrites.length})
-                    </span>
-                    {requiredRewrites.map((s, idx) => (
-                      <SuggestionCard
-                        key={idx}
-                        suggestion={s}
-                        index={idx}
-                        onSelectHighlight={setActiveHighlightText}
-                      />
-                    ))}
-                  </div>
-                )}
+                {/* RIGHT COLUMN: Metrics & Rewrites (~42%) */}
+                <div className="lg:col-span-5 space-y-6">
+                  
+                  {/* Score Card Banner */}
+                  <div className="p-6 bg-slate-900/90 border border-slate-800 rounded-3xl shadow-xl space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-heading font-extrabold text-lg text-white">ATS Impact Index</span>
+                        <span className="px-2.5 py-0.5 text-[10px] font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full shrink-0 whitespace-nowrap">
+                          +{scoreDelta > 0 ? scoreDelta : 0} PTS DELTA
+                        </span>
+                      </div>
 
-                {/* Optional Polish Accordion */}
-                {optionalRewrites.length > 0 && (
-                  <details className="group border border-slate-800 bg-slate-900/60 rounded-2xl overflow-hidden shadow-lg">
-                    <summary className="p-4 cursor-pointer flex items-center justify-between text-xs font-mono font-bold uppercase tracking-wider text-slate-400 hover:text-slate-200 select-none">
-                      <span>Optional Polish ({optionalRewrites.length} Fine-Tuning Edits)</span>
-                      <ChevronDown className="w-4 h-4 group-open:rotate-180 transition-transform" />
-                    </summary>
-                    <div className="p-4 pt-0 space-y-3 border-t border-slate-800/80">
-                      {optionalRewrites.map((s, idx) => (
-                        <SuggestionCard
-                          key={idx}
-                          suggestion={s}
-                          index={requiredRewrites.length + idx}
-                          onSelectHighlight={setActiveHighlightText}
-                        />
-                      ))}
+                      <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                        <button
+                          type="button"
+                          onClick={handleExportChangesPdf}
+                          data-testid="export-changes-pdf-btn"
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-xl text-xs font-mono font-medium transition-all shrink-0 whitespace-nowrap shadow-sm"
+                          title="Export only bullet rewrites & changes to PDF"
+                        >
+                          <Download className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                          <span>Export Changes</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={handleExportPdf}
+                          data-testid="export-pdf-btn"
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-mono font-medium border border-slate-700 transition-all shrink-0 whitespace-nowrap shadow-sm"
+                          title="Export full ATS audit report to PDF"
+                        >
+                          <FileText className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          <span>Full Report</span>
+                        </button>
+                      </div>
                     </div>
-                  </details>
-                )}
+
+                    <div className="flex flex-wrap items-center justify-around gap-4 py-2">
+                      <AtsScoreRing score={atsBefore} label="Current Score" color="amber" size={105} />
+                      <div className="text-xl font-heading font-extrabold text-slate-500 hidden sm:block">→</div>
+                      <AtsScoreRing score={atsAfter} label="Optimized Target" color="emerald" size={105} />
+                    </div>
+                  </div>
+
+                  {/* Recruiter HR Verdict */}
+                  <HrPerspective hrPerspective={analysisResult.hr_perspective} />
+
+                  {/* Authenticity Index */}
+                  <AuthenticityPanel
+                    authenticityScore={analysisResult.authenticity_score}
+                    dimensionScores={analysisResult.dimension_scores}
+                  />
+
+                  {/* Experience Realism & Claims */}
+                  <ExperienceRealism
+                    experienceRealism={analysisResult.experience_realism}
+                    unverifiableClaims={analysisResult.unverifiable_claims}
+                  />
+
+                  {/* Flagged AI Patterns */}
+                  <FlaggedPatterns
+                    flaggedPatterns={analysisResult.flagged_patterns}
+                    onSelectHighlight={setActiveHighlightText}
+                  />
+
+                  {/* Missing Keywords */}
+                  {analysisResult.ats_missing_keywords?.length > 0 && (
+                    <div className="p-5 bg-slate-900/90 border border-slate-800 rounded-2xl shadow-xl space-y-3">
+                      <h3 className="font-heading font-bold text-sm text-white flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-amber-400" /> Top Missing ATS Keywords
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        {analysisResult.ats_missing_keywords.map((kw, idx) => (
+                          <span
+                            key={idx}
+                            className="px-2.5 py-1 text-xs font-mono font-medium bg-amber-500/10 text-amber-300 border border-amber-500/20 rounded-lg"
+                          >
+                            + {kw}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Rewrites Section */}
+                  <div className="space-y-4 pt-2">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <h3 className="font-heading font-extrabold text-lg text-white">
+                        Strategic Bullet Rewrites
+                      </h3>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs font-mono text-slate-400">
+                          {suggestions.length} Suggestions
+                        </span>
+                        <button
+                          type="button"
+                          onClick={handleExportChangesPdf}
+                          className="flex items-center gap-1 px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-lg text-xs font-mono transition-colors"
+                          title="Download Changes PDF"
+                        >
+                          <Download className="w-3 h-3 text-amber-400" /> Export Changes PDF
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Required Rewrites */}
+                    {requiredRewrites.length > 0 && (
+                      <div className="space-y-3">
+                        <span className="text-xs font-mono font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1">
+                          Priority Impact Rewrites ({requiredRewrites.length})
+                        </span>
+                        {requiredRewrites.map((s, idx) => (
+                          <SuggestionCard
+                            key={idx}
+                            suggestion={s}
+                            index={idx}
+                            onSelectHighlight={setActiveHighlightText}
+                          />
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Optional Polish Accordion */}
+                    {optionalRewrites.length > 0 && (
+                      <details className="group border border-slate-800 bg-slate-900/60 rounded-2xl overflow-hidden shadow-lg">
+                        <summary className="p-4 cursor-pointer flex items-center justify-between text-xs font-mono font-bold uppercase tracking-wider text-slate-400 hover:text-slate-200 select-none">
+                          <span>Optional Polish ({optionalRewrites.length} Fine-Tuning Edits)</span>
+                          <ChevronDown className="w-4 h-4 group-open:rotate-180 transition-transform" />
+                        </summary>
+                        <div className="p-4 pt-0 space-y-3 border-t border-slate-800/80">
+                          {optionalRewrites.map((s, idx) => (
+                            <SuggestionCard
+                              key={idx}
+                              suggestion={s}
+                              index={requiredRewrites.length + idx}
+                              onSelectHighlight={setActiveHighlightText}
+                            />
+                          ))}
+                        </div>
+                      </details>
+                    )}
+
+                  </div>
+
+                </div>
 
               </div>
-
-            </div>
-
-          </div>
+            </>
+          )}
 
         </div>
       )}
