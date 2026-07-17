@@ -251,7 +251,7 @@ async function callMistral({ apiKey, model, resume, jobDescription, signal }) {
       throw new Error('Invalid Mistral API key — check your key at console.mistral.ai and try again.');
     }
     if (response.status === 429) {
-      throw new Error('Rate limit or quota exceeded on your Mistral AI account.');
+      throw new Error('Rate limit or quota exceeded on your Mistral AI account. Wait 30–60 seconds and retry, switch to Groq or Gemini (both have generous free tiers), or check your plan at console.mistral.ai.');
     }
     const errData = await response.json().catch(() => ({}));
     throw new Error(errData.error?.message || `Mistral API request failed (${response.status})`);
@@ -342,7 +342,7 @@ async function callOpenAI({ apiKey, model, resume, jobDescription, signal }) {
       throw new Error('Invalid API key — check your OpenAI key and try again.');
     }
     if (response.status === 429) {
-      throw new Error('Rate limit or quota exceeded on your OpenAI account.');
+      throw new Error('Rate limit or quota exceeded on your OpenAI account. OpenAI requires a paid plan with credits — add billing at platform.openai.com/account/billing. Alternatively, switch to Groq Cloud or Google Gemini which both have generous free tiers.');
     }
     const errData = await response.json().catch(() => ({}));
     throw new Error(errData.error?.message || `OpenAI API request failed (${response.status})`);

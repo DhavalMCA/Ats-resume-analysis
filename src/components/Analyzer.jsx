@@ -251,28 +251,40 @@ export function Analyzer({
 
           {/* Error Message Banner */}
           {errorMsg && (
-            <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs font-mono text-red-300">
-              <div className="flex items-center gap-3">
-                <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
-                <span>{errorMsg}</span>
+            <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-2xl text-xs font-mono text-red-300 space-y-3">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0 space-y-1">
+                  <p className="font-bold text-red-200 text-sm">Analysis Error</p>
+                  <p className="leading-relaxed">{errorMsg}</p>
+                  {(errorMsg.toLowerCase().includes('rate limit') || errorMsg.toLowerCase().includes('quota')) && (
+                    <div className="mt-2 pt-2 border-t border-red-500/20 space-y-1 text-red-300/80">
+                      <p className="font-semibold text-red-200">Quick fixes:</p>
+                      <ul className="list-disc list-inside space-y-0.5 pl-1">
+                        <li>Switch to a different provider (Groq or Gemini have free tiers)</li>
+                        <li>Wait 30–60 seconds and try again</li>
+                        <li>Check your billing/quota at your provider's dashboard</li>
+                        <li>Generate a new free API key</li>
+                      </ul>
+                    </div>
+                  )}
+                </div>
               </div>
-              <button
-                type="button"
-                onClick={onOpenApiKeyGuide}
-                className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-200 rounded-xl text-xs font-bold transition-all shrink-0"
-              >
-                Key Finder Guide & Tools
-              </button>
-            </div>
-          )}
-
-          {/* Error Message Banner */}
-          {errorMsg && (
-            <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-2xl flex items-center gap-3 text-xs font-mono text-red-300">
-              <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
-              <div className="space-y-0.5">
-                <p className="font-bold text-red-200">Analysis Error</p>
-                <p>{errorMsg}</p>
+              <div className="flex flex-wrap gap-2 pl-8">
+                <button
+                  type="button"
+                  onClick={onOpenApiKeyGuide}
+                  className="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-200 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
+                >
+                  🔑 Key Finder Guide &amp; Free Keys
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setErrorMsg(null)}
+                  className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-xl text-xs font-bold transition-all"
+                >
+                  Dismiss
+                </button>
               </div>
             </div>
           )}
