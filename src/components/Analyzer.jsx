@@ -10,7 +10,7 @@ import { FlaggedPatterns } from './FlaggedPatterns';
 import { SuggestionCard } from './SuggestionCard';
 import { analyzeResume } from '../lib/llm';
 import { saveAnalysis } from '../lib/history';
-import { exportAnalysisReport, exportChangesPdf, exportOptimizedResumeDirect } from '../lib/pdfExport';
+import { exportAnalysisReport, exportChangesPdf, exportOptimizedResumeMarkdown } from '../lib/pdfExport';
 import { 
   Sparkles, Download, RotateCcw, FileText, CheckCircle2, 
   AlertCircle, ChevronDown, ChevronUp, Key, ShieldCheck, FileText as FileIcon
@@ -159,14 +159,16 @@ export function Analyzer({
     showToast('Changes PDF exported successfully!', 'success');
   };
 
-  const handleExportOptimizedResume = () => {
+
+
+  const handleExportOptimizedResumeMarkdown = () => {
     if (!analysisResult || !parsedPdf) return;
-    exportOptimizedResumeDirect({
+    exportOptimizedResumeMarkdown({
       fileName: parsedPdf.fileName,
       resumeText: parsedPdf.fullText,
       suggestions: analysisResult.suggestions
     });
-    showToast('Optimized ATS-friendly Resume downloaded!', 'success');
+    showToast('Optimized Resume Markdown downloaded!', 'success');
   };
 
   // Split rewrites into required vs optional polish
@@ -384,13 +386,13 @@ export function Analyzer({
                   <div className="flex flex-wrap gap-2 pt-1">
                     <button
                       type="button"
-                      onClick={handleExportOptimizedResume}
+                      onClick={handleExportOptimizedResumeMarkdown}
                       data-testid="export-optimized-resume-btn"
                       className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 rounded-xl text-xs font-heading font-extrabold transition-all shadow-md shrink-0 flex-1 justify-center whitespace-nowrap"
-                      title="Download fully optimized ATS-compatible resume PDF"
+                      title="Download fully optimized ATS-compatible resume in Markdown format (.md)"
                     >
                       <Sparkles className="w-3.5 h-3.5 text-slate-950 shrink-0" />
-                      <span>Download ATS Resume</span>
+                      <span>Download ATS Resume (MD)</span>
                     </button>
 
                     <button
@@ -476,11 +478,11 @@ export function Analyzer({
                     </span>
                     <button
                       type="button"
-                      onClick={handleExportOptimizedResume}
+                      onClick={handleExportOptimizedResumeMarkdown}
                       className="flex items-center gap-1 px-2.5 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-lg text-xs font-mono transition-colors"
-                      title="Download Optimized Resume PDF"
+                      title="Download Optimized Resume Markdown"
                     >
-                      <Sparkles className="w-3 h-3 text-emerald-400" /> Download ATS Resume
+                      <Sparkles className="w-3 h-3 text-emerald-400" /> Download ATS Resume (MD)
                     </button>
                   </div>
                 </div>

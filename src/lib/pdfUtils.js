@@ -42,7 +42,7 @@ export async function parsePdfDocument(fileOrBuffer) {
     const textContent = await page.getTextContent();
     const lineBoxes = extractLineBoxes(textContent.items, viewport);
 
-    const pageText = lineBoxes.map(b => b.text).join(' ');
+    const pageText = lineBoxes.map(b => b.text).join('\n');
     fullText += (fullText ? '\n\n' : '') + pageText;
 
     pagesData.push({
@@ -114,6 +114,9 @@ function extractLineBoxes(items, viewport) {
       normalizedText: normalizeText(fullStr),
     });
   }
+
+  // Sort lineBoxes top-to-bottom (ascending y in viewport coords)
+  lineBoxes.sort((a, b) => a.y - b.y);
 
   return lineBoxes;
 }

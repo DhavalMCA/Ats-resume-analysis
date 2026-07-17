@@ -299,24 +299,24 @@ export function exportOptimizedResumePdf({ fileName, personalInfo, resumeText })
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
-  const margin = 18; // Standard 0.7-inch margins
+  const margin = 18; // Standard margins
   const contentWidth = pageWidth - 2 * margin;
   let y = 18;
 
   // 1. Header (Name and contact details)
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(18);
+  doc.setFontSize(20);
   doc.setTextColor(15, 23, 42); // slate-900
   
   const name = personalInfo.fullName?.trim() || 'Resume Candidate';
   const nameWidth = doc.getTextWidth(name);
   doc.text(name, (pageWidth - nameWidth) / 2, y);
-  y += 6;
+  y += 5.5;
 
   // Job Title if present
   if (personalInfo.jobTitle?.trim()) {
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(11);
+    doc.setFontSize(10.5);
     doc.setTextColor(71, 85, 105); // slate-600
     const title = personalInfo.jobTitle.trim();
     const titleWidth = doc.getTextWidth(title);
@@ -328,39 +328,33 @@ export function exportOptimizedResumePdf({ fileName, personalInfo, resumeText })
   const contacts = [];
   if (personalInfo.email?.trim()) contacts.push(personalInfo.email.trim());
   if (personalInfo.phone?.trim()) contacts.push(personalInfo.phone.trim());
-  if (personalInfo.location?.trim()) contacts.push(personalInfo.location.trim());
+  if (personalInfo.location?.trim() && personalInfo.location !== 'City, State') contacts.push(personalInfo.location.trim());
   if (personalInfo.website?.trim()) contacts.push(personalInfo.website.trim());
 
   if (contacts.length > 0) {
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
+    doc.setFontSize(8.5);
     doc.setTextColor(100, 116, 139); // slate-500
-    const contactText = contacts.join('   |   ');
+    const contactText = contacts.join('   •   ');
     const contactWidth = doc.getTextWidth(contactText);
     doc.text(contactText, (pageWidth - contactWidth) / 2, y);
-    y += 8;
+    y += 7;
   }
 
   // Thin line below contact info
   doc.setLineWidth(0.3);
   doc.setDrawColor(203, 213, 225); // slate-300
   doc.line(margin, y, pageWidth - margin, y);
-  y += 8;
+  y += 7;
 
   // 2. Parse and render body text line-by-line
   const lines = (resumeText || '').split('\n');
   
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.setTextColor(30, 41, 59); // slate-800
-  
   const isSectionHeader = (line) => {
     const trimmed = line.trim();
     if (!trimmed) return false;
-    // Starts with #
     if (trimmed.startsWith('#')) return true;
     
-    // Check if it's all uppercase and one of the standard section names
     const cleanStr = trimmed.toUpperCase().replace(/[^A-Z\s]/g, '').trim();
     const standardHeaders = [
       'EXPERIENCE', 'WORK EXPERIENCE', 'EDUCATION', 'SUMMARY', 
@@ -376,6 +370,30 @@ export function exportOptimizedResumePdf({ fileName, personalInfo, resumeText })
     return trimmed.startsWith('-') || trimmed.startsWith('•') || trimmed.startsWith('*');
   };
 
+  const isJobHeader = (line) => {
+    const trimmed = line.trim();
+    if (isSectionHeader(line) || isBulletPoint(line)) return false;
+    if (trimmed.length > 120) return false;
+    
+    const titleKeywords = [
+      'engineer', 'developer', 'manager', 'lead', 'director', 
+      'architect', 'designer', 'consultant', 'specialist', 'analyst',
+      'programmer', 'intern', 'founder', 'co-founder', 'executive',
+      'president', 'vice president', 'vp', 'officer', 'head of',
+      'administrator', 'representative', 'strategist', 'specialist',
+      'expert', 'university', 'college', 'school', 'institute',
+      'bachelor', 'master', 'ph.d', 'b.s', 'm.s', 'b.a', 'm.a'
+    ];
+    const upperLine = trimmed.toUpperCase();
+    const hasJobTitle = titleKeywords.some(t => upperLine.includes(t.toUpperCase()));
+    
+    const datePattern = /(Present|\b\d{4}\b|\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s*\d{4}\b)/i;
+    const hasDate = datePattern.test(trimmed);
+    const hasSeparator = trimmed.includes('|') || trimmed.includes('—') || (trimmed.includes(' - ') && !trimmed.match(/^\s*\d{4}\s*-\s*\d{4}/));
+    
+    return hasJobTitle || hasDate || hasSeparator;
+  };
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const trimmed = line.trim();
@@ -385,67 +403,97 @@ export function exportOptimizedResumePdf({ fileName, personalInfo, resumeText })
     }
 
     if (isSectionHeader(line)) {
-      // Clean section header name
       const headerName = trimmed.replace(/^#\s*/, '').trim();
       
-      checkPageBreak(20);
-      y += 3; // space before section
+      checkPageBreak(18);
+      y += 4; // space before section
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(12);
+      doc.setFontSize(11);
       doc.setTextColor(15, 23, 42); // slate-900
-      doc.text(headerName, margin, y);
+      doc.text(headerName.toUpperCase(), margin, y);
       
       // Draw horizontal underline
-      y += 2;
-      doc.setLineWidth(0.4);
+      y += 1.5;
+      doc.setLineWidth(0.3);
       doc.setDrawColor(148, 163, 184); // slate-400
       doc.line(margin, y, pageWidth - margin, y);
       y += 5.5;
       
+    } else if (isJobHeader(line)) {
+      // Split job header to extract date
+      const datePattern = /(Present|\b\d{4}\b|\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s*\d{4}\b)/i;
+      const dateMatch = trimmed.match(datePattern);
+      
+      let leftText = trimmed;
+      let rightText = '';
+      
+      if (dateMatch) {
+        const fullRangePattern = /(?:(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s*\d{4}|\b\d{4}\b)\s*(?:-|–|to)\s*(?:Present|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s*\d{4}|\b\d{4}\b)/i;
+        const rangeMatch = trimmed.match(fullRangePattern);
+        
+        const dateString = rangeMatch ? rangeMatch[0] : dateMatch[0];
+        rightText = dateString;
+        
+        leftText = trimmed.replace(dateString, '').trim();
+        leftText = leftText.replace(/\s*[-–|—•*]\s*$/, '').trim(); // strip trailing separator
+        leftText = leftText.replace(/,\s*$/, '').trim(); // strip trailing comma
+      }
+      
+      checkPageBreak(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9.5);
+      doc.setTextColor(15, 23, 42); // slate-900
+      
+      if (rightText) {
+        doc.text(leftText, margin, y);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(71, 85, 105); // slate-600
+        const rightWidth = doc.getTextWidth(rightText);
+        doc.text(rightText, pageWidth - margin - rightWidth, y);
+      } else {
+        doc.text(trimmed, margin, y);
+      }
+      y += 4.5;
+
     } else if (isBulletPoint(line)) {
-      // Bullet point bullet
       const cleanBulletText = trimmed.replace(/^[-•*]\s*/, '').trim();
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9.5);
+      doc.setFontSize(9);
       doc.setTextColor(30, 41, 59); // slate-800
 
-      // Split text into wrapped lines
-      // We indent bullets by 4mm and print text at 8mm
-      const indentTextX = margin + 5;
-      const bulletWidth = contentWidth - 5;
+      const indentTextX = margin + 4;
+      const bulletWidth = contentWidth - 4;
       const wrappedLines = doc.splitTextToSize(cleanBulletText, bulletWidth);
       
-      checkPageBreak(wrappedLines.length * 4.5);
+      checkPageBreak(wrappedLines.length * 4.2 + 1);
       
-      // Draw bullet circle
       doc.setFont('helvetica', 'bold');
-      doc.text('•', margin + 1, y);
+      doc.text('•', margin + 1.5, y);
       
       doc.setFont('helvetica', 'normal');
       for (let j = 0; j < wrappedLines.length; j++) {
         doc.text(wrappedLines[j], indentTextX, y);
         if (j < wrappedLines.length - 1) {
-          y += 4.5;
+          y += 4.2;
         }
       }
-      y += 5; // space between bullets
+      y += 4.5; // space between bullets
       
     } else {
-      // Standard line
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9.5);
+      doc.setFontSize(9);
       doc.setTextColor(30, 41, 59); // slate-800
       
       const wrappedLines = doc.splitTextToSize(trimmed, contentWidth);
-      checkPageBreak(wrappedLines.length * 4.5);
+      checkPageBreak(wrappedLines.length * 4.2 + 1);
       
       for (let j = 0; j < wrappedLines.length; j++) {
         doc.text(wrappedLines[j], margin, y);
         if (j < wrappedLines.length - 1) {
-          y += 4.5;
+          y += 4.2;
         }
       }
-      y += 5;
+      y += 4.5;
     }
   }
 
@@ -468,9 +516,11 @@ export function exportOptimizedResumeDirect({ fileName, resumeText, suggestions 
   let inferredTitle = '';
   let inferredEmail = '';
   let inferredPhone = '';
+  let inferredLocation = '';
+  let inferredWebsite = '';
 
   // Extract basic details from top of resume
-  for (let i = 0; i < Math.min(lines.length, 10); i++) {
+  for (let i = 0; i < Math.min(lines.length, 12); i++) {
     const line = lines[i].trim();
     if (!line) continue;
     
@@ -484,10 +534,25 @@ export function exportOptimizedResumeDirect({ fileName, resumeText, suggestions 
       if (match) inferredPhone = match[0].trim();
     }
 
-    if (!inferredName && line.length > 2 && line.length < 35 && !line.includes('@') && !line.includes('http')) {
+    if ((line.includes('github.com') || line.includes('linkedin.com') || line.includes('portfolio') || line.includes('http') || line.includes('www.')) && !inferredWebsite) {
+      const match = line.match(/(https?:\/\/[^\s]+|github\.com\/[a-zA-Z0-9-_/]+|linkedin\.com\/in\/[a-zA-Z0-9-_/]+|www\.[a-zA-Z0-9-_/.]+)/i);
+      if (match) inferredWebsite = match[0];
+    }
+
+    if (!inferredLocation && !line.includes('@') && !line.includes('http') && !line.includes('github') && !line.includes('linkedin') && !line.includes('www.')) {
+      const locMatch = line.match(/([A-Z][a-zA-Z\s.]+),\s*([A-Z]{2}|[A-Z][a-zA-Z\s]+)$/);
+      if (locMatch) {
+        inferredLocation = locMatch[0];
+      }
+    }
+
+    if (!inferredName && line.length > 2 && line.length < 35 && !line.includes('@') && !line.includes('http') && !line.includes('github') && !line.includes('linkedin') && !line.includes('www.') && !line.match(/\d/)) {
       inferredName = line;
-    } else if (inferredName && !inferredTitle && line.length > 2 && line.length < 40 && !line.includes('@') && !line.includes('http')) {
-      inferredTitle = line;
+    } else if (inferredName && !inferredTitle && line.length > 2 && line.length < 45 && !line.includes('@') && !line.includes('http') && !line.includes('github') && !line.includes('linkedin') && !line.includes('www.') && !line.match(/\d/)) {
+      const titleKeywords = ['engineer', 'developer', 'designer', 'manager', 'lead', 'architect', 'analyst', 'professional', 'expert', 'consultant', 'specialist'];
+      if (titleKeywords.some(kw => line.toLowerCase().includes(kw))) {
+        inferredTitle = line;
+      }
     }
   }
 
@@ -512,14 +577,16 @@ export function exportOptimizedResumeDirect({ fileName, resumeText, suggestions 
   const bodyLines = optimizedText.split('\n');
   let headerLinesCount = 0;
   
-  for (let i = 0; i < Math.min(bodyLines.length, 8); i++) {
+  for (let i = 0; i < Math.min(bodyLines.length, 10); i++) {
     const line = bodyLines[i].trim();
     if (!line) continue;
     if (
       (inferredName && line === inferredName) || 
       (inferredTitle && line === inferredTitle) || 
       (inferredEmail && line.includes(inferredEmail)) || 
-      (inferredPhone && line.includes(inferredPhone))
+      (inferredPhone && line.includes(inferredPhone)) ||
+      (inferredWebsite && line.includes(inferredWebsite)) ||
+      (inferredLocation && line === inferredLocation)
     ) {
       headerLinesCount = i + 1;
     }
@@ -535,11 +602,220 @@ export function exportOptimizedResumeDirect({ fileName, resumeText, suggestions 
       jobTitle: inferredTitle || 'Target Professional',
       email: inferredEmail || '',
       phone: inferredPhone || '',
-      location: 'City, State',
-      website: ''
+      location: inferredLocation || 'City, State',
+      website: inferredWebsite || ''
     },
     resumeText: finalBody
   });
+}
+
+export function exportOptimizedResumeMarkdown({ fileName, resumeText, suggestions }) {
+  const safeSuggestions = Array.isArray(suggestions) ? suggestions : [];
+  const lines = (resumeText || '').split('\n');
+  
+  let inferredName = '';
+  let inferredTitle = '';
+  let inferredEmail = '';
+  let inferredPhone = '';
+  let inferredLocation = '';
+  let inferredWebsite = '';
+
+  // Extract basic details from top of resume
+  for (let i = 0; i < Math.min(lines.length, 12); i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+    
+    if (line.includes('@') && !inferredEmail) {
+      const match = line.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+      if (match) inferredEmail = match[0];
+    }
+    
+    if ((line.match(/\+?\d[\d-\s()]{7,}\d/) || line.includes('+')) && !inferredPhone) {
+      const match = line.match(/\+?[\d-\s()]{8,15}/);
+      if (match) inferredPhone = match[0].trim();
+    }
+
+    if ((line.includes('github.com') || line.includes('linkedin.com') || line.includes('portfolio') || line.includes('http') || line.includes('www.')) && !inferredWebsite) {
+      const match = line.match(/(https?:\/\/[^\s]+|github\.com\/[a-zA-Z0-9-_/]+|linkedin\.com\/in\/[a-zA-Z0-9-_/]+|www\.[a-zA-Z0-9-_/.]+)/i);
+      if (match) inferredWebsite = match[0];
+    }
+
+    if (!inferredLocation && !line.includes('@') && !line.includes('http') && !line.includes('github') && !line.includes('linkedin') && !line.includes('www.')) {
+      const locMatch = line.match(/([A-Z][a-zA-Z\s.]+),\s*([A-Z]{2}|[A-Z][a-zA-Z\s]+)$/);
+      if (locMatch) {
+        inferredLocation = locMatch[0];
+      }
+    }
+
+    if (!inferredName && line.length > 2 && line.length < 35 && !line.includes('@') && !line.includes('http') && !line.includes('github') && !line.includes('linkedin') && !line.includes('www.') && !line.match(/\d/)) {
+      inferredName = line;
+    } else if (inferredName && !inferredTitle && line.length > 2 && line.length < 45 && !line.includes('@') && !line.includes('http') && !line.includes('github') && !line.includes('linkedin') && !line.includes('www.') && !line.match(/\d/)) {
+      const titleKeywords = ['engineer', 'developer', 'designer', 'manager', 'lead', 'architect', 'analyst', 'professional', 'expert', 'consultant', 'specialist'];
+      if (titleKeywords.some(kw => line.toLowerCase().includes(kw))) {
+        inferredTitle = line;
+      }
+    }
+  }
+
+  // Reconstruct body text by applying all suggestions
+  let optimizedText = resumeText || '';
+  
+  // Sort suggestions by length descending
+  const sortedSuggestions = [...safeSuggestions].sort((a, b) => {
+    const aLen = a?.original?.length || 0;
+    const bLen = b?.original?.length || 0;
+    return bLen - aLen;
+  });
+  
+  sortedSuggestions.forEach(s => {
+    if (s && s.original && s.improved && optimizedText.includes(s.original)) {
+      const escapedOriginal = s.original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      optimizedText = optimizedText.replace(new RegExp(escapedOriginal, 'g'), s.improved);
+    }
+  });
+
+  // Strip inferred headers from body lines to avoid duplicate headers in the clean PDF/MD
+  const bodyLines = optimizedText.split('\n');
+  let headerLinesCount = 0;
+  
+  for (let i = 0; i < Math.min(bodyLines.length, 10); i++) {
+    const line = bodyLines[i].trim();
+    if (!line) continue;
+    if (
+      (inferredName && line === inferredName) || 
+      (inferredTitle && line === inferredTitle) || 
+      (inferredEmail && line.includes(inferredEmail)) || 
+      (inferredPhone && line.includes(inferredPhone)) ||
+      (inferredWebsite && line.includes(inferredWebsite)) ||
+      (inferredLocation && line === inferredLocation)
+    ) {
+      headerLinesCount = i + 1;
+    }
+  }
+
+  const finalBodyLines = bodyLines.slice(headerLinesCount);
+  
+  // Build markdown structure
+  const mdParts = [];
+
+  // Header section
+  mdParts.push(`# ${inferredName || 'Resume Candidate'}`);
+  mdParts.push('');
+  if (inferredTitle) {
+    mdParts.push(`**${inferredTitle}**`);
+    mdParts.push('');
+  }
+  
+  const contacts = [];
+  if (inferredEmail) contacts.push(inferredEmail);
+  if (inferredPhone) contacts.push(inferredPhone);
+  if (inferredLocation && inferredLocation !== 'City, State') contacts.push(inferredLocation);
+  if (inferredWebsite) contacts.push(inferredWebsite);
+  
+  if (contacts.length > 0) {
+    mdParts.push(contacts.join('  |  '));
+  }
+  mdParts.push('');
+  mdParts.push('---');
+  mdParts.push('');
+
+  // Process body lines
+  const isSectionHeader = (line) => {
+    const trimmed = line.trim();
+    if (!trimmed) return false;
+    if (trimmed.startsWith('#')) return true;
+    const cleanStr = trimmed.toUpperCase().replace(/[^A-Z\s]/g, '').trim();
+    const standardHeaders = [
+      'EXPERIENCE', 'WORK EXPERIENCE', 'EDUCATION', 'SUMMARY', 
+      'PROFESSIONAL SUMMARY', 'SKILLS', 'TECHNICAL SKILLS', 
+      'PROJECTS', 'CERTIFICATIONS', 'PUBLICATIONS', 'LANGUAGES',
+      'SUMMARY OF QUALIFICATIONS', 'ORGANIZATIONS', 'AWARDS'
+    ];
+    return standardHeaders.some(h => cleanStr === h || cleanStr.startsWith(h + ' '));
+  };
+
+  const isBulletPoint = (line) => {
+    const trimmed = line.trim();
+    return trimmed.startsWith('-') || trimmed.startsWith('•') || trimmed.startsWith('*');
+  };
+
+  const isJobHeader = (line) => {
+    const trimmed = line.trim();
+    if (isSectionHeader(line) || isBulletPoint(line)) return false;
+    if (trimmed.length > 120) return false;
+    const titleKeywords = [
+      'engineer', 'developer', 'manager', 'lead', 'director', 
+      'architect', 'designer', 'consultant', 'specialist', 'analyst',
+      'programmer', 'intern', 'founder', 'co-founder', 'executive',
+      'president', 'vice president', 'vp', 'officer', 'head of',
+      'administrator', 'representative', 'strategist', 'specialist',
+      'expert', 'university', 'college', 'school', 'institute',
+      'bachelor', 'master', 'ph.d', 'b.s', 'm.s', 'b.a', 'm.a'
+    ];
+    const upperLine = trimmed.toUpperCase();
+    const hasJobTitle = titleKeywords.some(t => upperLine.includes(t.toUpperCase()));
+    
+    const datePattern = /(Present|\b\d{4}\b|\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s*\d{4}\b)/i;
+    const hasDate = datePattern.test(trimmed);
+    const hasSeparator = trimmed.includes('|') || trimmed.includes('—') || (trimmed.includes(' - ') && !trimmed.match(/^\s*\d{4}\s*-\s*\d{4}/));
+    
+    return hasJobTitle || hasDate || hasSeparator;
+  };
+
+  finalBodyLines.forEach(line => {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      mdParts.push('');
+      return;
+    }
+
+    if (isSectionHeader(line)) {
+      const headerName = trimmed.replace(/^#\s*/, '').trim();
+      mdParts.push(`## ${headerName.toUpperCase()}`);
+    } else if (isJobHeader(line)) {
+      // Split job header to extract date
+      const datePattern = /(Present|\b\d{4}\b|\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s*\d{4}\b)/i;
+      const dateMatch = trimmed.match(datePattern);
+      
+      let leftText = trimmed;
+      let rightText = '';
+      
+      if (dateMatch) {
+        const fullRangePattern = /(?:(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s*\d{4}|\b\d{4}\b)\s*(?:-|–|to)\s*(?:Present|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s*\d{4}|\b\d{4}\b)/i;
+        const rangeMatch = trimmed.match(fullRangePattern);
+        
+        const dateString = rangeMatch ? rangeMatch[0] : dateMatch[0];
+        rightText = dateString;
+        
+        leftText = trimmed.replace(dateString, '').trim();
+        leftText = leftText.replace(/\s*[-–|—•*]\s*$/, '').trim();
+        leftText = leftText.replace(/,\s*$/, '').trim();
+      }
+      
+      if (rightText) {
+        mdParts.push(`### ${leftText}  *(${rightText})*`);
+      } else {
+        mdParts.push(`### ${trimmed}`);
+      }
+    } else if (isBulletPoint(line)) {
+      const cleanBulletText = trimmed.replace(/^[-•*]\s*/, '').trim();
+      mdParts.push(`- ${cleanBulletText}`);
+    } else {
+      mdParts.push(trimmed);
+    }
+  });
+
+  const markdownContent = mdParts.join('\n');
+
+  // Trigger file download
+  const cleanFileName = fileName ? fileName.replace(/\.[^/.]+$/, "") : "Optimized_Resume";
+  const element = document.createElement("a");
+  const file = new Blob([markdownContent], {type: 'text/markdown;charset=utf-8'});
+  element.href = URL.createObjectURL(file);
+  element.download = `${cleanFileName}_Optimized.md`;
+  document.body.appendChild(element);
+  element.click();
+  document.body.removeChild(element);
 }
 
 
