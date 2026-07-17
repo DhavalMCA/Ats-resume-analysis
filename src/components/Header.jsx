@@ -44,7 +44,7 @@ export function Header({
 
   return (
     <header className="sticky top-0 z-40 backdrop-blur-xl bg-[#0a0d14]/90 border-b border-slate-800/80 transition-colors duration-300">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-2 lg:gap-4">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-20 flex items-center gap-2 lg:gap-3 overflow-hidden">
         
         {/* Brand Logo */}
         <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
@@ -70,7 +70,7 @@ export function Header({
         </div>
 
         {/* Desktop BYOK Controls Center */}
-        <div className="hidden lg:flex items-center justify-center gap-1.5 xl:gap-2 flex-1 min-w-0 max-w-2xl mx-1">
+        <div className="hidden lg:flex items-center gap-2 flex-1 min-w-0 mx-2 overflow-hidden">
           {/* Provider Selector Tabs */}
           <div className="flex items-center bg-slate-900/90 border border-slate-700/60 rounded-xl p-0.5 shrink-0">
             <button
@@ -128,12 +128,12 @@ export function Header({
           </div>
 
           {/* Model Selector Dropdown */}
-          <div className="relative shrink-0 max-w-[130px] xl:max-w-[160px]">
+          <div className="relative shrink-0 w-[150px] xl:w-[180px]">
             <select
               value={model}
               onChange={(e) => setModel(e.target.value)}
               data-testid="model-selector-dropdown"
-              className="w-full truncate appearance-none bg-slate-900/90 border border-slate-700/60 hover:border-slate-600 rounded-xl pl-2 pr-6 py-1.5 text-[11px] font-mono font-medium text-amber-400 focus:outline-none focus:border-amber-500/80 focus:ring-1 focus:ring-amber-500/50 cursor-pointer transition-all"
+              className="w-full truncate appearance-none bg-slate-900/90 border border-slate-700/60 hover:border-slate-600 rounded-xl pl-2.5 pr-6 py-1.5 text-[11px] font-mono font-medium text-amber-400 focus:outline-none focus:border-amber-500/80 focus:ring-1 focus:ring-amber-500/50 cursor-pointer transition-all"
             >
               {currentModelOptions.map((opt) => (
                 <option key={opt.id} value={opt.id} className="bg-slate-900 text-slate-200">
@@ -145,7 +145,7 @@ export function Header({
           </div>
 
           {/* Key Input Field & Save Form */}
-          <form onSubmit={handleSaveKey} className="flex items-center gap-1 min-w-0 flex-1 max-w-[210px] xl:max-w-[240px]">
+          <form onSubmit={handleSaveKey} className="flex items-center gap-1.5 flex-1 min-w-[160px]">
             <div className="relative flex-1 min-w-0">
               <Key className="w-3 h-3 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
               <input
@@ -162,7 +162,7 @@ export function Header({
                     : 'OpenAI key...'
                 }
                 data-testid="byok-api-key-input"
-                className="w-full pl-7 pr-6 py-1.5 bg-slate-900/90 border border-slate-700/60 rounded-xl text-[11px] font-mono text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/80 focus:ring-1 focus:ring-amber-500/50 transition-all truncate"
+                className="w-full pl-7 pr-7 py-1.5 bg-slate-900/90 border border-slate-700/60 rounded-xl text-[11px] font-mono text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/80 focus:ring-1 focus:ring-amber-500/50 transition-all"
               />
               <button
                 type="button"
@@ -177,7 +177,7 @@ export function Header({
             <button
               type="submit"
               data-testid="save-api-key-btn"
-              className="px-2 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono font-bold border border-amber-500/30 rounded-xl text-[11px] transition-all flex items-center justify-center gap-1 shrink-0 shadow-sm whitespace-nowrap"
+              className="px-2.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono font-bold border border-amber-500/30 rounded-xl text-[11px] transition-all flex items-center justify-center gap-1 shrink-0 shadow-sm"
             >
               {savedSuccess ? (
                 <>
@@ -192,16 +192,16 @@ export function Header({
         </div>
 
         {/* Right Action Icons */}
-        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0">
           {/* Key Finder Guide Button */}
           <button
             onClick={onOpenApiKeyGuide}
             data-testid="open-api-key-guide-btn"
-            className="flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 rounded-xl text-xs font-mono font-semibold transition-all shrink-0 whitespace-nowrap"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 rounded-xl text-xs font-mono font-semibold transition-all shrink-0 whitespace-nowrap"
             title="How to get free API keys"
           >
             <Key className="w-3.5 h-3.5 shrink-0" />
-            <span className="hidden sm:inline">Get API Key</span>
+            <span className="hidden xl:inline">Get API Key</span>
           </button>
 
           {/* Privacy Tooltip / Information Badge */}
@@ -238,7 +238,7 @@ export function Header({
             title="View Past Scans"
           >
             <History className="w-4 h-4 text-amber-400 shrink-0" />
-            <span className="hidden sm:inline">History</span>
+            <span className="hidden xl:inline">History</span>
             {historyCount > 0 && (
               <span className="w-4 h-4 rounded-full bg-amber-500 text-slate-950 font-bold text-[10px] flex items-center justify-center shrink-0">
                 {historyCount}
