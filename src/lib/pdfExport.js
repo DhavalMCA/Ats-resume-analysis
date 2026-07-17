@@ -460,4 +460,87 @@ export function exportOptimizedResumePdf({ fileName, personalInfo, resumeText })
   doc.save(`${cleanFileName}_Optimized.pdf`);
 }
 
+export function exportOptimizedResumeDirect({ fileName, resumeText, suggestions }) {
+  const safeSuggestions = Array.isArray(suggestions) ? suggestions : [];
+  const lines = (resumeText || '').split('\n');
+  
+  let inferredName = '';
+  let inferredTitle = '';
+  let inferredEmail = '';
+  let inferredPhone = '';
+
+  // Extract basic details from top of resume
+  for (let i = 0; i < Math.min(lines.length, 10); i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+    
+    if (line.includes('@') && !inferredEmail) {
+      const match = line.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+      if (match) inferredEmail = match[0];
+    }
+    
+    if ((line.match(/\+?\d[\d-\s()]{7,}\d/) || line.includes('+')) && !inferredPhone) {
+      const match = line.match(/\+?[\d-\s()]{8,15}/);
+      if (match) inferredPhone = match[0].trim();
+    }
+
+    if (!inferredName && line.length > 2 && line.length < 35 && !line.includes('@') && !line.includes('http')) {
+      inferredName = line;
+    } else if (inferredName && !inferredTitle && line.length > 2 && line.length < 40 && !line.includes('@') && !line.includes('http')) {
+      inferredTitle = line;
+    }
+  }
+
+  // Reconstruct body text by applying all suggestions
+  let optimizedText = resumeText || '';
+  
+  // Sort suggestions by length descending to avoid partial matching conflicts
+  const sortedSuggestions = [...safeSuggestions].sort((a, b) => {
+    const aLen = a?.original?.length || 0;
+    const bLen = b?.original?.length || 0;
+    return bLen - aLen;
+  });
+  
+  sortedSuggestions.forEach(s => {
+    if (s && s.original && s.improved && optimizedText.includes(s.original)) {
+      const escapedOriginal = s.original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      optimizedText = optimizedText.replace(new RegExp(escapOriginal, 'g'), s.improved);
+    }
+  });
+
+  // Strip inferred headers from body lines to avoid duplicate headers in the clean PDF
+  const bodyLines = optimizedText.split('\n');
+  let headerLinesCount = 0;
+  
+  for (let i = 0; i < Math.min(bodyLines.length, 8); i++) {
+    const line = bodyLines[i].trim();
+    if (!line) continue;
+    if (
+      (inferredName && line === inferredName) || 
+      (inferredTitle && line === inferredTitle) || 
+      (inferredEmail && line.includes(inferredEmail)) || 
+      (inferredPhone && line.includes(inferredPhone))
+    ) {
+      headerLinesCount = i + 1;
+    }
+  }
+
+  const finalBody = bodyLines.slice(headerLinesCount).join('\n');
+
+  // Trigger print-ready PDF export
+  exportOptimizedResumePdf({
+    fileName,
+    personalInfo: {
+      fullName: inferredName || 'Resume Candidate',
+      jobTitle: inferredTitle || 'Target Professional',
+      email: inferredEmail || '',
+      phone: inferredPhone || '',
+      location: 'City, State',
+      website: ''
+    },
+    resumeText: finalBody
+  });
+}
+
+
 
