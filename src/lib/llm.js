@@ -63,12 +63,8 @@ export const MODEL_CONFIGS = {
     name: 'Google Gemini',
     defaultModel: 'gemini-3.5-flash',
     options: [
-      // ── Gemini 3.x — Works for ALL API keys (2026) ──
       { id: 'gemini-3.5-flash',      label: 'Gemini 3.5 Flash ⭐ (Newest · Free)' },
       { id: 'gemini-3.1-flash-lite', label: 'Gemini 3.1 Flash-Lite (Fastest · Free)' },
-      // ── Gemini 2.5 — Existing users / older keys only ──
-      { id: 'gemini-2.5-flash',      label: 'Gemini 2.5 Flash (Older keys only)' },
-      { id: 'gemini-2.5-pro',        label: 'Gemini 2.5 Pro (Older keys · Paid)' },
     ]
   },
   openai: {
