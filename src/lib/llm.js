@@ -63,13 +63,12 @@ export const MODEL_CONFIGS = {
     name: 'Google Gemini',
     defaultModel: 'gemini-3.5-flash',
     options: [
-      // ── Gemini 3.x (Latest · July 2026) ──
-      { id: 'gemini-3.5-flash',       label: 'Gemini 3.5 Flash ⭐ (Newest · Free)' },
-      { id: 'gemini-3.1-flash-lite',  label: 'Gemini 3.1 Flash-Lite (Fast · Free)' },
-      // ── Gemini 2.5 (Stable) ──
-      { id: 'gemini-2.5-flash',       label: 'Gemini 2.5 Flash (Stable · Free)' },
-      { id: 'gemini-2.5-flash-lite',  label: 'Gemini 2.5 Flash-Lite (Lightweight · Free)' },
-      { id: 'gemini-2.5-pro',         label: 'Gemini 2.5 Pro (Paid · Best Quality)' },
+      // ── Gemini 3.x — Works for ALL API keys (2026) ──
+      { id: 'gemini-3.5-flash',      label: 'Gemini 3.5 Flash ⭐ (Newest · Free)' },
+      { id: 'gemini-3.1-flash-lite', label: 'Gemini 3.1 Flash-Lite (Fastest · Free)' },
+      // ── Gemini 2.5 — Existing users / older keys only ──
+      { id: 'gemini-2.5-flash',      label: 'Gemini 2.5 Flash (Older keys only)' },
+      { id: 'gemini-2.5-pro',        label: 'Gemini 2.5 Pro (Older keys · Paid)' },
     ]
   },
   openai: {
@@ -383,7 +382,7 @@ async function callGemini({ apiKey, model, resume, jobDescription, signal }) {
       generationConfig: {
         responseMimeType: 'application/json',
         temperature: 0.35,
-        maxOutputTokens: 4096
+        maxOutputTokens: 8192
       }
     })
   });
@@ -420,29 +419,57 @@ async function callGemini({ apiKey, model, resume, jobDescription, signal }) {
 
 function parseJsonResponse(text) {
   try {
-    // Strip markdown code fences if present
-    const cleaned = text.replace(/^```json\s*/i, '').replace(/```$/i, '').trim();
-    const parsed = JSON.parse(cleaned);
+    // 1. Try direct parse first (ideal case - model returned clean JSON)
+    try {
+      return sanitizeResponse(JSON.parse(text.trim()));
+    } catch (_) { /* fall through */ }
 
-    // Validate essential fields and sanitize arrays
-    return {
-      ats_score_before: typeof parsed.ats_score_before === 'number' ? parsed.ats_score_before : 0,
-      ats_score_after: typeof parsed.ats_score_after === 'number' ? parsed.ats_score_after : 0,
-      authenticity_score: typeof parsed.authenticity_score === 'number' ? parsed.authenticity_score : 0,
-      verdict_summary: String(parsed.verdict_summary || ''),
-      dimension_scores: parsed.dimension_scores && typeof parsed.dimension_scores === 'object' ? parsed.dimension_scores : {},
-      ai_detected_lines: Array.isArray(parsed.ai_detected_lines) ? parsed.ai_detected_lines : [],
-      flagged_patterns: Array.isArray(parsed.flagged_patterns) ? parsed.flagged_patterns : [],
-      experience_realism: parsed.experience_realism && typeof parsed.experience_realism === 'object' ? parsed.experience_realism : {},
-      unverifiable_claims: Array.isArray(parsed.unverifiable_claims) ? parsed.unverifiable_claims : [],
-      ats_missing_keywords: Array.isArray(parsed.ats_missing_keywords) ? parsed.ats_missing_keywords : [],
-      suggestions: Array.isArray(parsed.suggestions) ? parsed.suggestions : [],
-      hr_perspective: parsed.hr_perspective && typeof parsed.hr_perspective === 'object' ? parsed.hr_perspective : {}
-    };
+    // 2. Strip markdown code fences: ```json ... ``` or ``` ... ```
+    const stripped = text
+      .replace(/^```(?:json)?\s*/im, '')
+      .replace(/```\s*$/im, '')
+      .trim();
+    try {
+      return sanitizeResponse(JSON.parse(stripped));
+    } catch (_) { /* fall through */ }
+
+    // 3. Extract the first complete JSON object from anywhere in the text
+    const firstBrace = text.indexOf('{');
+    const lastBrace = text.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace > firstBrace) {
+      const jsonSlice = text.slice(firstBrace, lastBrace + 1);
+      try {
+        return sanitizeResponse(JSON.parse(jsonSlice));
+      } catch (_) { /* fall through */ }
+    }
+
+    // 4. Nothing worked
+    console.error('Failed to parse LLM JSON. Raw text:', text?.slice(0, 500));
+    throw new Error('PARSE_FAILED');
   } catch (err) {
-    console.error('Failed to parse LLM JSON:', text);
-    throw new Error('Failed to parse AI response as valid JSON schema.');
+    if (err.message === 'PARSE_FAILED') {
+      throw new Error('Failed to parse AI response as valid JSON. The model may have returned a non-JSON reply. Try again or switch to a different model.');
+    }
+    throw err;
   }
+}
+
+function sanitizeResponse(parsed) {
+  // Validate essential fields and sanitize arrays
+  return {
+    ats_score_before:    typeof parsed.ats_score_before    === 'number' ? parsed.ats_score_before    : 0,
+    ats_score_after:     typeof parsed.ats_score_after     === 'number' ? parsed.ats_score_after     : 0,
+    authenticity_score:  typeof parsed.authenticity_score  === 'number' ? parsed.authenticity_score  : 0,
+    verdict_summary:     String(parsed.verdict_summary || ''),
+    dimension_scores:    parsed.dimension_scores    && typeof parsed.dimension_scores    === 'object' ? parsed.dimension_scores    : {},
+    ai_detected_lines:   Array.isArray(parsed.ai_detected_lines)   ? parsed.ai_detected_lines   : [],
+    flagged_patterns:    Array.isArray(parsed.flagged_patterns)    ? parsed.flagged_patterns    : [],
+    experience_realism:  parsed.experience_realism  && typeof parsed.experience_realism  === 'object' ? parsed.experience_realism  : {},
+    unverifiable_claims: Array.isArray(parsed.unverifiable_claims) ? parsed.unverifiable_claims : [],
+    ats_missing_keywords:Array.isArray(parsed.ats_missing_keywords)? parsed.ats_missing_keywords: [],
+    suggestions:         Array.isArray(parsed.suggestions)         ? parsed.suggestions         : [],
+    hr_perspective:      parsed.hr_perspective      && typeof parsed.hr_perspective      === 'object' ? parsed.hr_perspective      : {}
+  };
 }
 
 export async function verifyApiKey({ provider, apiKey }) {
