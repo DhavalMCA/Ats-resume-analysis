@@ -117,9 +117,7 @@ src/
 - [ ] Cover letter analysis
 - [ ] Batch resume comparison
 
-## 📄 License
 
-MIT
 
 ## 👤 Author
 
