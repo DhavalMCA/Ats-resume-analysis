@@ -100,6 +100,77 @@ export const MODEL_CONFIGS = {
   }
 };
 
+export const PROVIDER_HELP = {
+  gemini: {
+    name: 'Google Gemini',
+    portalUrl: 'https://aistudio.google.com/app/apikey',
+    portalName: 'Google AI Studio',
+    isFree: true,
+    badge: '100% Free · No Credit Card Required',
+    keyFormat: 'Starts with "AIzaSy..." (39 characters)',
+    description: 'Google offers generous free rate limits (up to 15 RPM) for Gemini models via Google AI Studio without requiring any payment method.',
+    steps: [
+      'Go to Google AI Studio at aistudio.google.com/app/apikey',
+      'Sign in with your Google account.',
+      'Click the blue "Create API Key" button.',
+      'Select a Google Cloud project (or let it auto-create a default project).',
+      'Click "Create API key in existing project" or "Create API Key".',
+      'Copy the generated key starting with AIzaSy and paste it above.'
+    ]
+  },
+  groq: {
+    name: 'Groq Cloud',
+    portalUrl: 'https://console.groq.com/keys',
+    portalName: 'Groq Console',
+    isFree: true,
+    badge: 'Ultra Fast · Free Rate Tier Available',
+    keyFormat: 'Starts with "gsk_..." (approx 56 characters)',
+    description: 'Groq delivers ultra-fast LPU inference speeds for open weights models like Llama 3.3 and GPT-OSS with a free developer tier.',
+    steps: [
+      'Navigate to console.groq.com/keys',
+      'Sign in with Google, GitHub, or Email.',
+      'Click on the "API Keys" section in the left sidebar menu.',
+      'Click the "+ Create API Key" button.',
+      'Give your key a name (e.g. "ATS Resume Analyzer") and click "Submit".',
+      'Copy the secret key starting with gsk_ and paste it in the app.'
+    ]
+  },
+  mistral: {
+    name: 'Mistral AI',
+    portalUrl: 'https://console.mistral.ai/api-keys/',
+    portalName: 'Mistral AI Console',
+    isFree: false,
+    badge: 'High Performance European LLM',
+    keyFormat: 'Random 32+ character string (alphanumeric)',
+    description: 'Mistral AI provides state-of-the-art European language and reasoning models like Mistral Large and Codestral.',
+    steps: [
+      'Open console.mistral.ai/api-keys/',
+      'Create an account or log in.',
+      'Navigate to API Keys in the left panel.',
+      'Click "Create new key".',
+      'Name your key and copy the key string.',
+      'Paste the key into the Mistral slot in the top bar.'
+    ]
+  },
+  openai: {
+    name: 'OpenAI ChatGPT',
+    portalUrl: 'https://platform.openai.com/api-keys',
+    portalName: 'OpenAI Developer Platform',
+    isFree: false,
+    badge: 'Pay-As-You-Go ($0.0001 per run with GPT-4o mini)',
+    keyFormat: 'Starts with "sk-proj-..." or "sk-..."',
+    description: 'Access GPT-4o, GPT-4o-mini, and o3-mini models directly via your personal OpenAI API account.',
+    steps: [
+      'Go to platform.openai.com/api-keys',
+      'Log in to your OpenAI developer account.',
+      'Ensure you have credits in Billing settings (platform.openai.com/settings/organization/billing).',
+      'Click "Create new secret key".',
+      'Name your key and click "Create secret key".',
+      'Copy the secret key string starting with sk- and paste it here.'
+    ]
+  }
+};
+
 const MAX_INPUT_LENGTH = 50000;
 
 function sanitizeInputText(str) {
@@ -359,3 +430,60 @@ function parseJsonResponse(text) {
     throw new Error('Failed to parse AI response as valid JSON schema.');
   }
 }
+
+export async function verifyApiKey({ provider, apiKey }) {
+  if (!apiKey || !apiKey.trim()) {
+    return { ok: false, message: 'Please enter an API key.' };
+  }
+
+  const trimmedKey = apiKey.trim();
+
+  try {
+    if (provider === 'gemini') {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${trimmedKey}`);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        return { ok: false, message: err.error?.message || `Invalid Gemini key (Status ${res.status})` };
+      }
+      return { ok: true, message: 'Gemini API key is valid!' };
+    } 
+
+    if (provider === 'groq') {
+      const res = await fetch('https://api.groq.com/openai/v1/models', {
+        headers: { 'Authorization': `Bearer ${trimmedKey}` }
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        return { ok: false, message: err.error?.message || `Invalid Groq key (Status ${res.status})` };
+      }
+      return { ok: true, message: 'Groq API key is valid!' };
+    }
+
+    if (provider === 'mistral') {
+      const res = await fetch('https://api.mistral.ai/v1/models', {
+        headers: { 'Authorization': `Bearer ${trimmedKey}` }
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        return { ok: false, message: err.error?.message || `Invalid Mistral key (Status ${res.status})` };
+      }
+      return { ok: true, message: 'Mistral API key is valid!' };
+    }
+
+    if (provider === 'openai') {
+      const res = await fetch('https://api.openai.com/v1/models', {
+        headers: { 'Authorization': `Bearer ${trimmedKey}` }
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        return { ok: false, message: err.error?.message || `Invalid OpenAI key (Status ${res.status})` };
+      }
+      return { ok: true, message: 'OpenAI API key is valid!' };
+    }
+
+    return { ok: false, message: 'Unsupported provider selected.' };
+  } catch (err) {
+    return { ok: false, message: err.message || 'Connection check failed.' };
+  }
+}
+

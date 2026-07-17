@@ -3,6 +3,7 @@ import { ThemeProvider } from './components/ThemeProvider';
 import { Header } from './components/Header';
 import { Analyzer } from './components/Analyzer';
 import { HistoryDrawer } from './components/HistoryDrawer';
+import { ApiKeyGuideModal } from './components/ApiKeyGuideModal';
 import { getAllAnalyses } from './lib/history';
 import { MODEL_CONFIGS } from './lib/llm';
 
@@ -24,6 +25,8 @@ export default function App() {
     return MODEL_CONFIGS[provider]?.defaultModel || 'gemini-2.0-flash';
   });
 
+  const [apiKeyGuideOpen, setApiKeyGuideOpen] = useState(false);
+
   const handleProviderChange = (newProvider) => {
     setProvider(newProvider);
     sessionStorage.setItem('byok_provider', newProvider);
@@ -35,6 +38,14 @@ export default function App() {
   const handleModelChange = (newModel) => {
     setModel(newModel);
     sessionStorage.setItem('byok_model', newModel);
+  };
+
+  const handleSaveKeyFromModal = (newKey, newProvider) => {
+    if (newProvider && newProvider !== provider) {
+      handleProviderChange(newProvider);
+    }
+    setApiKey(newKey);
+    sessionStorage.setItem('byok_llm_key', newKey);
   };
 
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -73,6 +84,7 @@ export default function App() {
           setModel={handleModelChange}
           onOpenHistory={() => setHistoryOpen(true)}
           historyCount={historyCount}
+          onOpenApiKeyGuide={() => setApiKeyGuideOpen(true)}
         />
 
         {/* Main Application Content */}
@@ -83,6 +95,7 @@ export default function App() {
             model={model}
             onHistoryUpdated={refreshHistoryCount}
             selectedHistoryItem={selectedHistoryItem}
+            onOpenApiKeyGuide={() => setApiKeyGuideOpen(true)}
           />
         </main>
 
@@ -92,6 +105,15 @@ export default function App() {
           onClose={() => setHistoryOpen(false)}
           onSelectHistoryItem={(item) => setSelectedHistoryItem(item)}
           onHistoryUpdated={refreshHistoryCount}
+        />
+
+        {/* API Key Guide & Helper Tools Modal */}
+        <ApiKeyGuideModal
+          isOpen={apiKeyGuideOpen}
+          onClose={() => setApiKeyGuideOpen(false)}
+          currentProvider={provider}
+          apiKey={apiKey}
+          onSaveKey={handleSaveKeyFromModal}
         />
       </div>
     </ThemeProvider>

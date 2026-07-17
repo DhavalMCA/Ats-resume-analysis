@@ -34,7 +34,8 @@ export function Analyzer({
   provider, 
   model,
   onHistoryUpdated,
-  selectedHistoryItem 
+  selectedHistoryItem,
+  onOpenApiKeyGuide
 }) {
   const [parsedPdf, setParsedPdf] = useState(null);
   const [jobDescription, setJobDescription] = useState('');
@@ -230,11 +231,38 @@ export function Analyzer({
 
           {/* Warning Banner if API key missing */}
           {!apiKey && (
-            <div className="p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center gap-3 text-xs font-mono text-amber-300">
-              <Key className="w-5 h-5 text-amber-400 shrink-0" />
-              <span>
-                Please paste and save your {provider === 'gemini' ? 'Google Gemini' : 'OpenAI'} API key in the header above to run analysis.
-              </span>
+            <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs font-mono text-amber-300">
+              <div className="flex items-center gap-3">
+                <Key className="w-5 h-5 text-amber-400 shrink-0" />
+                <span>
+                  Please paste and save your API key in the header above to run analysis.
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={onOpenApiKeyGuide}
+                className="px-3.5 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 hover:text-amber-200 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 shadow-sm"
+              >
+                <span>How to get free API keys?</span>
+                <span>→</span>
+              </button>
+            </div>
+          )}
+
+          {/* Error Message Banner */}
+          {errorMsg && (
+            <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs font-mono text-red-300">
+              <div className="flex items-center gap-3">
+                <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
+                <span>{errorMsg}</span>
+              </div>
+              <button
+                type="button"
+                onClick={onOpenApiKeyGuide}
+                className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-200 rounded-xl text-xs font-bold transition-all shrink-0"
+              >
+                Key Finder Guide & Tools
+              </button>
             </div>
           )}
 
