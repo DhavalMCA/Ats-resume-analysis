@@ -3,7 +3,7 @@ import { useTheme } from './ThemeProvider';
 import { MODEL_CONFIGS } from '../lib/llm';
 import { 
   Key, Eye, EyeOff, ShieldCheck, Moon, Sun, 
-  History, Sparkles, HelpCircle, Check, Cpu, Zap, ChevronDown, Flame, HelpCircle as QuestionMark
+  History, Sparkles, HelpCircle, Check, Cpu, Zap, ChevronDown, Flame
 } from 'lucide-react';
 
 export function Header({ 
@@ -42,177 +42,65 @@ export function Header({
 
   const currentModelOptions = MODEL_CONFIGS[provider]?.options || [];
 
+  const providerConfig = [
+    { id: 'groq',    label: 'Groq',    icon: <Zap className="w-3 h-3" /> },
+    { id: 'gemini',  label: 'Gemini',  icon: <Cpu className="w-3 h-3" /> },
+    { id: 'mistral', label: 'Mistral', icon: <Flame className="w-3 h-3" /> },
+    { id: 'openai',  label: 'OpenAI',  icon: <Sparkles className="w-3 h-3" /> },
+  ];
+
   return (
-    <header className="sticky top-0 z-40 backdrop-blur-xl bg-[#0a0d14]/90 border-b border-slate-800/80 transition-colors duration-300">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-20 flex items-center gap-2 lg:gap-3 overflow-hidden">
-        
+    <header className="sticky top-0 z-40 backdrop-blur-xl bg-[#0a0d14]/95 border-b border-slate-800/80 transition-colors duration-300">
+
+      {/* ── Row 1: Logo + Right Actions ── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-3">
+
         {/* Brand Logo */}
-        <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
-          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 p-0.5 shadow-lg shadow-amber-500/20 shrink-0">
+        <div className="flex items-center gap-2.5 shrink-0">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 p-0.5 shadow-lg shadow-amber-500/20 shrink-0">
             <div className="w-full h-full bg-[#0a0d14] rounded-[10px] flex items-center justify-center">
               <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
             </div>
           </div>
-          <div className="shrink-0">
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <span className="font-heading font-bold text-sm sm:text-base md:text-lg tracking-tight text-white whitespace-nowrap">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-sm sm:text-base tracking-tight text-white whitespace-nowrap">
                 Resume<span className="text-amber-400">Intelligence</span>
               </span>
-              <span className="hidden xl:inline-block px-1.5 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full whitespace-nowrap">
+              <span className="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full whitespace-nowrap">
                 BYOK v1.0
               </span>
             </div>
-            <p className="text-[10px] sm:text-[11px] text-slate-400 font-mono flex items-center gap-1 whitespace-nowrap">
+            <p className="text-[10px] text-slate-400 font-mono flex items-center gap-1 whitespace-nowrap">
               <ShieldCheck className="w-3 h-3 text-emerald-400 shrink-0" />
               100% Client-Side Audit
             </p>
           </div>
         </div>
 
-        {/* Desktop BYOK Controls Center */}
-        <div className="hidden lg:flex items-center gap-2 flex-1 min-w-0 mx-2 overflow-hidden">
-          {/* Provider Selector Tabs */}
-          <div className="flex items-center bg-slate-900/90 border border-slate-700/60 rounded-xl p-0.5 shrink-0">
-            <button
-              type="button"
-              data-testid="provider-groq-btn"
-              onClick={() => handleProviderChange('groq')}
-              className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-mono font-medium transition-all ${
-                provider === 'groq'
-                  ? 'bg-amber-500 text-slate-950 font-semibold shadow-md shadow-amber-500/20'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <Zap className="w-3 h-3" />
-              <span className="hidden xl:inline">Groq</span>
-            </button>
-            <button
-              type="button"
-              data-testid="provider-gemini-btn"
-              onClick={() => handleProviderChange('gemini')}
-              className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-mono font-medium transition-all ${
-                provider === 'gemini'
-                  ? 'bg-amber-500 text-slate-950 font-semibold shadow-md shadow-amber-500/20'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <Cpu className="w-3 h-3" />
-              <span className="hidden xl:inline">Gemini</span>
-            </button>
-            <button
-              type="button"
-              data-testid="provider-mistral-btn"
-              onClick={() => handleProviderChange('mistral')}
-              className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-mono font-medium transition-all ${
-                provider === 'mistral'
-                  ? 'bg-amber-500 text-slate-950 font-semibold shadow-md shadow-amber-500/20'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <Flame className="w-3 h-3" />
-              <span className="hidden xl:inline">Mistral</span>
-            </button>
-            <button
-              type="button"
-              data-testid="provider-openai-btn"
-              onClick={() => handleProviderChange('openai')}
-              className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-mono font-medium transition-all ${
-                provider === 'openai'
-                  ? 'bg-amber-500 text-slate-950 font-semibold shadow-md shadow-amber-500/20'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <Sparkles className="w-3 h-3" />
-              <span className="hidden xl:inline">OpenAI</span>
-            </button>
-          </div>
-
-          {/* Model Selector Dropdown */}
-          <div className="relative shrink-0 w-[150px] xl:w-[180px]">
-            <select
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
-              data-testid="model-selector-dropdown"
-              className="w-full truncate appearance-none bg-slate-900/90 border border-slate-700/60 hover:border-slate-600 rounded-xl pl-2.5 pr-6 py-1.5 text-[11px] font-mono font-medium text-amber-400 focus:outline-none focus:border-amber-500/80 focus:ring-1 focus:ring-amber-500/50 cursor-pointer transition-all"
-            >
-              {currentModelOptions.map((opt) => (
-                <option key={opt.id} value={opt.id} className="bg-slate-900 text-slate-200">
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="w-3 h-3 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
-          </div>
-
-          {/* Key Input Field & Save Form */}
-          <form onSubmit={handleSaveKey} className="flex items-center gap-1.5 flex-1 min-w-[160px]">
-            <div className="relative flex-1 min-w-0">
-              <Key className="w-3 h-3 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-              <input
-                type={showKey ? 'text' : 'password'}
-                value={tempKey}
-                onChange={(e) => setTempKey(e.target.value)}
-                placeholder={
-                  provider === 'groq'
-                    ? 'Groq key...'
-                    : provider === 'gemini' 
-                    ? 'Gemini key...' 
-                    : provider === 'mistral'
-                    ? 'Mistral key...'
-                    : 'OpenAI key...'
-                }
-                data-testid="byok-api-key-input"
-                className="w-full pl-7 pr-7 py-1.5 bg-slate-900/90 border border-slate-700/60 rounded-xl text-[11px] font-mono text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/80 focus:ring-1 focus:ring-amber-500/50 transition-all"
-              />
-              <button
-                type="button"
-                onClick={() => setShowKey(!showKey)}
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-0.5"
-                title={showKey ? 'Hide Key' : 'Show Key'}
-              >
-                {showKey ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-              </button>
-            </div>
-
-            <button
-              type="submit"
-              data-testid="save-api-key-btn"
-              className="px-2.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono font-bold border border-amber-500/30 rounded-xl text-[11px] transition-all flex items-center justify-center gap-1 shrink-0 shadow-sm"
-            >
-              {savedSuccess ? (
-                <>
-                  <Check className="w-3 h-3" />
-                  <span>Saved</span>
-                </>
-              ) : (
-                <span>Save</span>
-              )}
-            </button>
-          </form>
-        </div>
-
-        {/* Right Action Icons */}
+        {/* Right Action Buttons */}
         <div className="flex items-center gap-1.5 shrink-0">
-          {/* Key Finder Guide Button */}
+
+          {/* Get API Key */}
           <button
             onClick={onOpenApiKeyGuide}
             data-testid="open-api-key-guide-btn"
-            className="flex items-center gap-1.5 px-2.5 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 rounded-xl text-xs font-mono font-semibold transition-all shrink-0 whitespace-nowrap"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 rounded-xl text-xs font-mono font-semibold transition-all shrink-0"
             title="How to get free API keys"
           >
             <Key className="w-3.5 h-3.5 shrink-0" />
-            <span className="hidden xl:inline">Get API Key</span>
+            <span className="hidden sm:inline">Get API Key</span>
           </button>
 
-          {/* Privacy Tooltip / Information Badge */}
+          {/* Privacy Info */}
           <div className="relative group hidden md:block shrink-0">
-            <button 
-              className="p-2 text-slate-400 hover:text-amber-400 hover:bg-slate-800/60 rounded-xl transition-all"
+            <button
+              className="p-1.5 text-slate-400 hover:text-amber-400 hover:bg-slate-800/60 rounded-xl transition-all"
               aria-label="Privacy information"
             >
-              <HelpCircle className="w-5 h-5" />
+              <HelpCircle className="w-4.5 h-4.5" />
             </button>
-            <div className="absolute right-0 top-full mt-2 w-72 p-3 bg-slate-900 border border-slate-700 rounded-xl shadow-xl text-xs text-slate-300 hidden group-hover:block z-50 animate-fade-up">
+            <div className="absolute right-0 top-full mt-2 w-72 p-3 bg-slate-900 border border-slate-700 rounded-xl shadow-xl text-xs text-slate-300 hidden group-hover:block z-50">
               <p className="font-semibold text-white mb-1 flex items-center gap-1.5">
                 <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
                 Zero Backend Guarantee
@@ -230,15 +118,15 @@ export function Header({
             </div>
           </div>
 
-          {/* History Drawer Trigger */}
+          {/* History */}
           <button
             onClick={onOpenHistory}
             data-testid="open-history-drawer-btn"
-            className="flex items-center gap-1.5 sm:gap-2 px-2.5 py-1.5 sm:px-3.5 sm:py-2 bg-slate-900 hover:bg-slate-800 border border-slate-700/80 rounded-xl text-xs font-mono text-slate-200 transition-all shrink-0 whitespace-nowrap relative"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-700/80 rounded-xl text-xs font-mono text-slate-200 transition-all shrink-0 relative"
             title="View Past Scans"
           >
             <History className="w-4 h-4 text-amber-400 shrink-0" />
-            <span className="hidden xl:inline">History</span>
+            <span className="hidden sm:inline">History</span>
             {historyCount > 0 && (
               <span className="w-4 h-4 rounded-full bg-amber-500 text-slate-950 font-bold text-[10px] flex items-center justify-center shrink-0">
                 {historyCount}
@@ -246,21 +134,107 @@ export function Header({
             )}
           </button>
 
-          {/* Dark / Light Theme Toggle */}
+          {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
             data-testid="theme-toggle-btn"
-            className="p-1.5 sm:p-2 text-slate-400 hover:text-amber-400 hover:bg-slate-800/60 rounded-xl transition-all shrink-0"
+            className="p-1.5 text-slate-400 hover:text-amber-400 hover:bg-slate-800/60 rounded-xl transition-all shrink-0"
             title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} mode`}
           >
-            {theme === 'dark' ? <Sun className="w-5 h-5 text-amber-400" /> : <Moon className="w-5 h-5" />}
+            {theme === 'dark' ? <Sun className="w-4.5 h-4.5 text-amber-400" /> : <Moon className="w-4.5 h-4.5" />}
           </button>
         </div>
-
       </div>
 
-      {/* Mobile & Tablet Provider & Model & Key Banner (< 1024px) */}
-      <div className="lg:hidden px-3 sm:px-4 pb-3 flex flex-col gap-2 border-t border-slate-800/60 pt-2.5">
+      {/* ── Row 2 (Desktop ≥ lg): Provider + Model + API Key ── */}
+      <div className="hidden lg:block border-t border-slate-800/60 bg-[#0a0d14]/60">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-11 flex items-center gap-3">
+
+          {/* Provider Tabs */}
+          <div className="flex items-center bg-slate-900/80 border border-slate-700/50 rounded-lg p-0.5 shrink-0 gap-0.5">
+            {providerConfig.map(({ id, label, icon }) => (
+              <button
+                key={id}
+                type="button"
+                data-testid={`provider-${id}-btn`}
+                onClick={() => handleProviderChange(id)}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-[11px] font-mono font-medium transition-all whitespace-nowrap ${
+                  provider === id
+                    ? 'bg-amber-500 text-slate-950 font-semibold shadow-sm shadow-amber-500/30'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                }`}
+              >
+                {icon}
+                <span>{label}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Divider */}
+          <div className="w-px h-5 bg-slate-700/60 shrink-0" />
+
+          {/* Model Selector */}
+          <div className="relative shrink-0 w-[200px]">
+            <select
+              value={model}
+              onChange={(e) => setModel(e.target.value)}
+              data-testid="model-selector-dropdown"
+              className="w-full appearance-none bg-slate-900/80 border border-slate-700/50 hover:border-slate-600 rounded-lg pl-2.5 pr-7 py-1 text-[11px] font-mono font-medium text-amber-400 focus:outline-none focus:border-amber-500/80 focus:ring-1 focus:ring-amber-500/40 cursor-pointer transition-all"
+            >
+              {currentModelOptions.map((opt) => (
+                <option key={opt.id} value={opt.id} className="bg-slate-900 text-slate-200">
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="w-3 h-3 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+          </div>
+
+          {/* Divider */}
+          <div className="w-px h-5 bg-slate-700/60 shrink-0" />
+
+          {/* API Key Input + Save */}
+          <form onSubmit={handleSaveKey} className="flex items-center gap-2 flex-1">
+            <div className="relative flex-1 min-w-0">
+              <Key className="w-3 h-3 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+              <input
+                type={showKey ? 'text' : 'password'}
+                value={tempKey}
+                onChange={(e) => setTempKey(e.target.value)}
+                placeholder={`Paste ${provider} API key here…`}
+                data-testid="byok-api-key-input"
+                className="w-full pl-7 pr-8 py-1 bg-slate-900/80 border border-slate-700/50 rounded-lg text-[11px] font-mono text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/80 focus:ring-1 focus:ring-amber-500/40 transition-all"
+              />
+              <button
+                type="button"
+                onClick={() => setShowKey(!showKey)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                title={showKey ? 'Hide Key' : 'Show Key'}
+              >
+                {showKey ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+              </button>
+            </div>
+            <button
+              type="submit"
+              data-testid="save-api-key-btn"
+              className="px-4 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono font-bold rounded-lg text-[11px] transition-all flex items-center gap-1.5 shrink-0 shadow-sm"
+            >
+              {savedSuccess ? (
+                <>
+                  <Check className="w-3 h-3" />
+                  <span>Saved!</span>
+                </>
+              ) : (
+                <span>Save</span>
+              )}
+            </button>
+          </form>
+
+        </div>
+      </div>
+
+      {/* ── Mobile / Tablet Controls (< lg) ── */}
+      <div className="lg:hidden border-t border-slate-800/60 px-4 pb-3 pt-2.5 flex flex-col gap-2">
         <div className="grid grid-cols-2 gap-2">
           <select
             value={provider}
@@ -277,25 +251,23 @@ export function Header({
             value={model}
             onChange={(e) => setModel(e.target.value)}
             aria-label="Select Model"
-            className="w-full bg-slate-900 border border-slate-700 text-xs font-mono text-amber-300 rounded-xl p-2 focus:outline-none focus:border-amber-500 truncate"
+            className="w-full bg-slate-900 border border-slate-700 text-xs font-mono text-amber-300 rounded-xl p-2 focus:outline-none focus:border-amber-500"
           >
             {currentModelOptions.map((opt) => (
-              <option key={opt.id} value={opt.id}>
-                {opt.label}
-              </option>
+              <option key={opt.id} value={opt.id}>{opt.label}</option>
             ))}
           </select>
         </div>
-        <form onSubmit={handleSaveKey} className="flex items-center gap-1.5">
+        <form onSubmit={handleSaveKey} className="flex items-center gap-2">
           <div className="relative flex-1 min-w-0">
             <Key className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             <input
               type={showKey ? 'text' : 'password'}
               value={tempKey}
               onChange={(e) => setTempKey(e.target.value)}
-              placeholder={`Paste ${provider} API key here...`}
+              placeholder={`Paste ${provider} API key here…`}
               aria-label="API key input"
-              className="w-full pl-8 pr-8 py-2 bg-slate-900 border border-slate-700 text-xs font-mono text-white rounded-xl placeholder-slate-500 focus:outline-none focus:border-amber-500 min-w-0"
+              className="w-full pl-8 pr-8 py-2 bg-slate-900 border border-slate-700 text-xs font-mono text-white rounded-xl placeholder-slate-500 focus:outline-none focus:border-amber-500"
             />
             <button
               type="button"
@@ -318,9 +290,10 @@ export function Header({
           className="w-full py-1.5 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 rounded-xl text-xs font-mono font-semibold flex items-center justify-center gap-1.5"
         >
           <Key className="w-3.5 h-3.5 shrink-0" />
-          <span>Need an API Key? View Free Links & Guide</span>
+          <span>Need an API Key? View Free Links &amp; Guide</span>
         </button>
       </div>
+
     </header>
   );
 }
