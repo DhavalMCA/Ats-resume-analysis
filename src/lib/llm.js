@@ -79,16 +79,13 @@ export const MODEL_CONFIGS = {
   },
   groq: {
     name: 'Groq Cloud',
-    defaultModel: 'llama-3.3-70b-versatile',
+    defaultModel: 'openai/gpt-oss-20b',
     options: [
-      { id: 'llama-3.1-8b-instant', label: 'Llama 3.1 8B (Instant - Low Tokens)' },
-      { id: 'llama-3.2-3b-preview', label: 'Llama 3.2 3B (Ultra Light)' },
-      { id: 'llama-3.2-1b-preview', label: 'Llama 3.2 1B (Micro Light)' },
-      { id: 'openai/gpt-oss-20b', label: 'GPT-OSS 20B (Compact & Efficient)' },
-      { id: 'gemma2-9b-it', label: 'Gemma 2 9B (Fast & Light)' },
+      { id: 'openai/gpt-oss-20b', label: 'GPT-OSS 20B (Low Tokens & Fast)' },
+      { id: 'meta-llama/llama-4-scout-17b-16e-instruct', label: 'Llama 4 Scout 17B (Fast & Efficient)' },
+      { id: 'llama-3.1-8b-instant', label: 'Llama 3.1 8B (Instant)' },
+      { id: 'openai/gpt-oss-120b', label: 'GPT-OSS 120B (High Accuracy)' },
       { id: 'llama-3.3-70b-versatile', label: 'Llama 3.3 70B (Versatile)' },
-      { id: 'openai/gpt-oss-120b', label: 'GPT-OSS 120B' },
-      { id: 'deepseek-r1-distill-llama-70b', label: 'DeepSeek R1 70B (Reasoning)' },
     ]
   },
   mistral: {
@@ -225,7 +222,7 @@ async function callGroq({ apiKey, model, resume, jobDescription, signal }) {
       throw new Error('Invalid Groq API key — check your key starting with gsk_ and try again.');
     }
     if (response.status === 429) {
-      throw new Error('Rate limit or quota exceeded on your Groq account.');
+      throw new Error('Rate limit or quota exceeded on your Groq account. Try switching to a lower-token model like "openai/gpt-oss-20b" or "Llama 3.1 8B", or wait a minute before retrying.');
     }
     const errData = await response.json().catch(() => ({}));
     throw new Error(errData.error?.message || `Groq API request failed (${response.status})`);
