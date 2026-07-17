@@ -42,8 +42,8 @@ export function HistoryDrawer({ isOpen, onClose, onSelectHistoryItem, onHistoryU
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden bg-slate-950/80 backdrop-blur-sm animate-fade-up">
-      <div className="absolute inset-y-0 right-0 max-w-full flex pl-10">
-        <div className="w-screen max-w-md bg-[#0a0d14] border-l border-slate-800 shadow-2xl flex flex-col">
+      <div className="absolute inset-y-0 right-0 max-w-full flex pl-0 sm:pl-10">
+        <div className="w-screen max-w-full sm:max-w-md bg-[#0a0d14] border-l border-slate-800 shadow-2xl flex flex-col">
           
           {/* Header */}
           <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-900/60">

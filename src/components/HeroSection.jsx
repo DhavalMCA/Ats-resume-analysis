@@ -7,19 +7,19 @@ export function HeroSection({ provider, model }) {
   const activeModelOption = providerConfig.options.find(o => o.id === model) || providerConfig.options[0];
 
   return (
-    <div className="relative py-8 md:py-12 text-center max-w-4xl mx-auto px-4">
+    <div className="relative py-6 sm:py-10 md:py-12 text-center max-w-4xl mx-auto px-4">
       {/* Top Badge Pills */}
-      <div className="inline-flex items-center gap-2 mb-6 p-1 bg-slate-900/80 border border-amber-500/20 rounded-full shadow-lg">
-        <span className="px-3 py-1 text-[11px] font-mono font-semibold uppercase tracking-[0.2em] bg-amber-500/10 text-amber-400 rounded-full border border-amber-500/30 anim-breath">
+      <div className="inline-flex flex-wrap items-center justify-center gap-2 mb-4 sm:mb-6 p-1 bg-slate-900/80 border border-amber-500/20 rounded-full sm:rounded-full shadow-lg max-w-full">
+        <span className="px-2.5 sm:px-3 py-1 text-[10px] sm:text-[11px] font-mono font-semibold uppercase tracking-[0.15em] sm:tracking-[0.2em] bg-amber-500/10 text-amber-400 rounded-full border border-amber-500/30 anim-breath">
           LOCAL-FIRST · BYOK
         </span>
-        <span className="px-3 py-1 text-[11px] font-mono font-semibold uppercase tracking-[0.2em] bg-emerald-500/10 text-emerald-400 rounded-full border border-emerald-500/20">
+        <span className="px-2.5 sm:px-3 py-1 text-[10px] sm:text-[11px] font-mono font-semibold uppercase tracking-[0.15em] sm:tracking-[0.2em] bg-emerald-500/10 text-emerald-400 rounded-full border border-emerald-500/20">
           PRIVACY FIRST
         </span>
       </div>
 
       {/* Hero Headline */}
-      <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white mb-4 leading-[1.1]">
+      <h1 className="font-heading text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white mb-4 leading-[1.15] sm:leading-[1.1]">
         Resume <span className="gradient-text-amber">Intelligence</span> for the ATS era.
       </h1>
 

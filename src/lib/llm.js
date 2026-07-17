@@ -85,18 +85,39 @@ export const MODEL_CONFIGS = {
       { id: 'llama-3.1-8b-instant', label: 'Llama 3.1 8B (Instant)' },
       { id: 'deepseek-r1-distill-llama-70b', label: 'DeepSeek R1 70B (Reasoning)' },
     ]
+  },
+  mistral: {
+    name: 'Mistral AI',
+    defaultModel: 'mistral-large-latest',
+    options: [
+      { id: 'mistral-large-latest', label: 'Mistral Large (Flagship)' },
+      { id: 'pixtral-large-latest', label: 'Pixtral Large' },
+      { id: 'mistral-small-latest', label: 'Mistral Small (Fast)' },
+      { id: 'codestral-latest', label: 'Codestral (Reasoning & Code)' },
+    ]
   }
 };
 
+const MAX_INPUT_LENGTH = 50000;
+
+function sanitizeInputText(str) {
+  if (typeof str !== 'string') return '';
+  // Trim and slice to max length limit to mitigate prompt injection and excess payload attacks
+  return str.trim().slice(0, MAX_INPUT_LENGTH);
+}
+
 function buildUserMessage(jobDescription, resume) {
+  const sanitizedJd = sanitizeInputText(jobDescription);
+  const sanitizedResume = sanitizeInputText(resume);
+  
   return `JOB DESCRIPTION:
 """
-${jobDescription}
+${sanitizedJd}
 """
 
 RESUME:
 """
-${resume}
+${sanitizedResume}
 """
 
 Return the JSON analysis now.`;
@@ -107,15 +128,69 @@ export async function analyzeResume({ provider, model, apiKey, resume, jobDescri
     throw new Error('API key is missing. Please provide a valid key in the header.');
   }
 
+  const cleanResume = sanitizeInputText(resume);
+  const cleanJd = sanitizeInputText(jobDescription);
+
+  if (!cleanResume) {
+    throw new Error('Resume text is empty or invalid.');
+  }
+  if (!cleanJd) {
+    throw new Error('Job description text is empty or invalid.');
+  }
+
   const selectedModel = model || MODEL_CONFIGS[provider]?.defaultModel;
 
   if (provider === 'groq') {
-    return callGroq({ apiKey, model: selectedModel, resume, jobDescription, signal });
+    return callGroq({ apiKey, model: selectedModel, resume: cleanResume, jobDescription: cleanJd, signal });
   } else if (provider === 'gemini') {
-    return callGemini({ apiKey, model: selectedModel, resume, jobDescription, signal });
+    return callGemini({ apiKey, model: selectedModel, resume: cleanResume, jobDescription: cleanJd, signal });
+  } else if (provider === 'mistral') {
+    return callMistral({ apiKey, model: selectedModel, resume: cleanResume, jobDescription: cleanJd, signal });
   } else {
-    return callOpenAI({ apiKey, model: selectedModel, resume, jobDescription, signal });
+    return callOpenAI({ apiKey, model: selectedModel, resume: cleanResume, jobDescription: cleanJd, signal });
   }
+}
+
+async function callMistral({ apiKey, model, resume, jobDescription, signal }) {
+  const selectedModel = model || MODEL_CONFIGS.mistral.defaultModel;
+
+  const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey.trim()}`
+    },
+    signal,
+    body: JSON.stringify({
+      model: selectedModel,
+      temperature: 0.35,
+      max_tokens: 4096,
+      response_format: { type: 'json_object' },
+      messages: [
+        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'user', content: buildUserMessage(jobDescription, resume) }
+      ]
+    })
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('Invalid Mistral API key — check your key at console.mistral.ai and try again.');
+    }
+    if (response.status === 429) {
+      throw new Error('Rate limit or quota exceeded on your Mistral AI account.');
+    }
+    const errData = await response.json().catch(() => ({}));
+    throw new Error(errData.error?.message || `Mistral API request failed (${response.status})`);
+  }
+
+  const data = await response.json();
+  const rawText = data.choices?.[0]?.message?.content;
+  if (!rawText) {
+    throw new Error('Received empty response from Mistral AI.');
+  }
+
+  return parseJsonResponse(rawText);
 }
 
 async function callGroq({ apiKey, model, resume, jobDescription, signal }) {
@@ -131,6 +206,7 @@ async function callGroq({ apiKey, model, resume, jobDescription, signal }) {
     body: JSON.stringify({
       model: selectedModel,
       temperature: 0.35,
+      max_tokens: 4096,
       response_format: { type: 'json_object' },
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
@@ -165,6 +241,7 @@ async function callOpenAI({ apiKey, model, resume, jobDescription, signal }) {
 
   const bodyPayload = {
     model: selectedModel,
+    max_tokens: 4096,
     messages: [
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'user', content: buildUserMessage(jobDescription, resume) }
@@ -228,7 +305,8 @@ async function callGemini({ apiKey, model, resume, jobDescription, signal }) {
       ],
       generationConfig: {
         responseMimeType: 'application/json',
-        temperature: 0.35
+        temperature: 0.35,
+        maxOutputTokens: 4096
       }
     })
   });
@@ -257,7 +335,23 @@ function parseJsonResponse(text) {
   try {
     // Strip markdown code fences if present
     const cleaned = text.replace(/^```json\s*/i, '').replace(/```$/i, '').trim();
-    return JSON.parse(cleaned);
+    const parsed = JSON.parse(cleaned);
+
+    // Validate essential fields and sanitize arrays
+    return {
+      ats_score_before: typeof parsed.ats_score_before === 'number' ? parsed.ats_score_before : 0,
+      ats_score_after: typeof parsed.ats_score_after === 'number' ? parsed.ats_score_after : 0,
+      authenticity_score: typeof parsed.authenticity_score === 'number' ? parsed.authenticity_score : 0,
+      verdict_summary: String(parsed.verdict_summary || ''),
+      dimension_scores: parsed.dimension_scores && typeof parsed.dimension_scores === 'object' ? parsed.dimension_scores : {},
+      ai_detected_lines: Array.isArray(parsed.ai_detected_lines) ? parsed.ai_detected_lines : [],
+      flagged_patterns: Array.isArray(parsed.flagged_patterns) ? parsed.flagged_patterns : [],
+      experience_realism: parsed.experience_realism && typeof parsed.experience_realism === 'object' ? parsed.experience_realism : {},
+      unverifiable_claims: Array.isArray(parsed.unverifiable_claims) ? parsed.unverifiable_claims : [],
+      ats_missing_keywords: Array.isArray(parsed.ats_missing_keywords) ? parsed.ats_missing_keywords : [],
+      suggestions: Array.isArray(parsed.suggestions) ? parsed.suggestions : [],
+      hr_perspective: parsed.hr_perspective && typeof parsed.hr_perspective === 'object' ? parsed.hr_perspective : {}
+    };
   } catch (err) {
     console.error('Failed to parse LLM JSON:', text);
     throw new Error('Failed to parse AI response as valid JSON schema.');

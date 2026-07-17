@@ -1,0 +1,16 @@
+# Security Rules for AI-Generated Apps
+
+Enforce the following security rules across all codebase modifications:
+
+1. Secrets: No hardcoded secrets or API keys in frontend files. Use `.env` and `.gitignore`.
+2. Rate Limiting: Rate limit endpoints (auth: 5 req/15min, general API: 60 req/min, LLM: 10 req/min).
+3. Input Validation: Validate and sanitize all user input on the server boundary; enforce length and type limits.
+4. Authentication & Authorization: Use established auth libraries, check resource ownership on every request.
+5. Database Security: Use ORM or parameterized queries only. No string concatenation for queries.
+6. CORS: No wildcard CORS in production. Explicit origin whitelist only.
+7. Security Headers: Enforce CSP, X-Frame-Options, X-Content-Type-Options, HSTS, Referrer-Policy.
+8. Uploads: Validate MIME type, extension, size limits, store outside web root, use UUID filenames.
+9. Error Handling: Return generic error messages to client; log detailed errors server-side.
+10. Dependencies: Run security audits regularly; pin dependency versions.
+11. XSS Prevention: Avoid `dangerouslySetInnerHTML`, `innerHTML`, `eval()`. Sanitize dynamic HTML with DOMPurify if required.
+12. LLM / AI Security: Treat prompt inputs and LLM outputs as untrusted data. Set `max_tokens` limits. Route requests through server proxy or secure client BYOK. Validate output JSON structure.

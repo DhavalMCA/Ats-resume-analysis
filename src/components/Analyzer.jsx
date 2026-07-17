@@ -332,9 +332,9 @@ export function Analyzer({
                   </button>
                 </div>
 
-                <div className="flex items-center justify-around py-2">
+                <div className="flex flex-wrap items-center justify-around gap-4 py-2">
                   <AtsScoreRing score={atsBefore} label="Current Score" color="amber" size={105} />
-                  <div className="text-xl font-heading font-extrabold text-slate-500">→</div>
+                  <div className="text-xl font-heading font-extrabold text-slate-500 hidden sm:block">→</div>
                   <AtsScoreRing score={atsAfter} label="Optimized Target" color="emerald" size={105} />
                 </div>
               </div>

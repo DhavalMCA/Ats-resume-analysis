@@ -60,27 +60,27 @@ export function PdfHighlightViewer({ pages = [], aiDetectedLines = [], activeHig
   return (
     <div ref={containerRef} className="space-y-4">
       {/* Severity Legend Header */}
-      <div className="p-3 bg-slate-900/90 border border-slate-800 rounded-2xl flex items-center justify-between gap-2 shadow-md">
+      <div className="p-3 bg-slate-900/90 border border-slate-800 rounded-2xl flex flex-wrap items-center justify-between gap-2 shadow-md">
         <div className="flex items-center gap-2">
-          <Eye className="w-4 h-4 text-amber-400" />
+          <Eye className="w-4 h-4 text-amber-400 shrink-0" />
           <span className="font-heading font-bold text-xs text-white">Interactive PDF Inspector</span>
         </div>
 
-        <div className="flex items-center gap-3 text-[10px] font-mono font-semibold">
+        <div className="flex items-center gap-2 sm:gap-3 text-[10px] font-mono font-semibold flex-wrap">
           <span className="flex items-center gap-1 text-red-400">
-            <span className="w-2.5 h-2.5 rounded-full bg-red-500/80 inline-block" /> High Severity
+            <span className="w-2.5 h-2.5 rounded-full bg-red-500/80 inline-block shrink-0" /> High
           </span>
           <span className="flex items-center gap-1 text-amber-400">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80 inline-block" /> Medium
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80 inline-block shrink-0" /> Medium
           </span>
           <span className="flex items-center gap-1 text-yellow-300">
-            <span className="w-2.5 h-2.5 rounded-full bg-yellow-400/80 inline-block" /> Low
+            <span className="w-2.5 h-2.5 rounded-full bg-yellow-400/80 inline-block shrink-0" /> Low
           </span>
         </div>
       </div>
 
       {/* Pages Canvas List */}
-      <div className="space-y-6 max-h-[85vh] overflow-y-auto pr-1 custom-scrollbar rounded-2xl">
+      <div className="space-y-6 max-h-[85vh] overflow-x-auto overflow-y-auto pr-1 custom-scrollbar rounded-2xl">
         {pages.map((page, pIdx) => {
           const pageMatches = pageHighlights.filter(h => h.pageIndex === pIdx);
 

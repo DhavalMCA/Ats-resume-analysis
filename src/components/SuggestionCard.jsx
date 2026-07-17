@@ -26,8 +26,8 @@ export function SuggestionCard({ suggestion, index, onSelectHighlight }) {
       }`}
     >
       {/* Header */}
-      <div className="flex items-center justify-between gap-2 mb-3">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+        <div className="flex items-center gap-2 flex-wrap">
           <span className="font-mono font-bold text-xs text-white flex items-center gap-1">
             <span className="text-amber-400">#{index + 1}</span> Rewrite
           </span>

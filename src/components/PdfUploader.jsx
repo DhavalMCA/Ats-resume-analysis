@@ -9,10 +9,16 @@ export function PdfUploader({ onPdfParsed, parsedPdf, onClearPdf }) {
   const fileInputRef = useRef(null);
 
   const handleFileChange = async (file) => {
-    if (!file) return;
+    if (!file || file.size === 0) {
+      setError('Selected file is empty or invalid.');
+      return;
+    }
 
-    if (file.type !== 'application/pdf' && !file.name.endsWith('.pdf')) {
-      setError('Please select a valid PDF document.');
+    const hasPdfExtension = file.name.toLowerCase().endsWith('.pdf');
+    const hasPdfMime = file.type === 'application/pdf' || file.type === '';
+
+    if (!hasPdfExtension || !hasPdfMime) {
+      setError('Please select a valid PDF document (.pdf).');
       return;
     }
 
