@@ -31,3 +31,6 @@ lerna-debug.log*
 !.vscode/extensions.json
 .idea
 stitch design.md
+
+# Next.js
+.next

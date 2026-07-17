@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://ats-resume-analysis-sigma.vercel.app/sitemap.xml

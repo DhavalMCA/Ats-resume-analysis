@@ -8,22 +8,26 @@ import { getAllAnalyses } from './lib/history';
 import { MODEL_CONFIGS } from './lib/llm';
 
 export default function App() {
-  const [apiKey, setApiKey] = useState(() => {
-    return sessionStorage.getItem('byok_llm_key') || '';
-  });
+  const [apiKey, setApiKey] = useState('');
+  const [provider, setProvider] = useState('gemini');
+  const [model, setModel] = useState('gemini-2.0-flash');
 
-  const [provider, setProvider] = useState(() => {
-    return sessionStorage.getItem('byok_provider') || 'gemini';
-  });
-
-  const [model, setModel] = useState(() => {
+  // Load from sessionStorage on client mount
+  useEffect(() => {
+    const savedKey = sessionStorage.getItem('byok_llm_key') || '';
+    const savedProvider = sessionStorage.getItem('byok_provider') || 'gemini';
     const savedModel = sessionStorage.getItem('byok_model');
-    const validModels = MODEL_CONFIGS[provider]?.options.map(o => o.id) || [];
+    
+    setApiKey(savedKey);
+    setProvider(savedProvider);
+    
+    const validModels = MODEL_CONFIGS[savedProvider]?.options.map(o => o.id) || [];
     if (savedModel && validModels.includes(savedModel)) {
-      return savedModel;
+      setModel(savedModel);
+    } else {
+      setModel(MODEL_CONFIGS[savedProvider]?.defaultModel || 'gemini-2.0-flash');
     }
-    return MODEL_CONFIGS[provider]?.defaultModel || 'gemini-2.0-flash';
-  });
+  }, []);
 
   const [apiKeyGuideOpen, setApiKeyGuideOpen] = useState(false);
 
