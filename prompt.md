@@ -1,6 +1,6 @@
 # Resume Intelligence — Master Build & Security Specification
 
-Build a premium, client-side **Resume ATS Analyzer & Authenticity Audit Application** as a single-page React app with **zero backend servers and zero database dependencies**. Everything runs strictly in the browser using Bring Your Own Key (BYOK) AI API credentials.
+Build a premium **Resume ATS Analyzer & Authenticity Audit Application** using **Next.js App Router**. The tool features server-side rendered (SSR/SSG) semantic content (headings, keyword-rich paragraph, FAQs), metadata configurations (canonical, OG tags, Twitter cards), and structured JSON-LD schemas, alongside a local-first client-side interactive interface with **zero backend servers and zero database dependencies** using Bring Your Own Key (BYOK) AI API credentials.
 
 ---
 
@@ -165,13 +165,19 @@ Rules:
 ├── CLAUDE.md                       # Security rule guidelines for AI agents
 ├── .cursorrules                    # IDE security constraints
 ├── .env.example                    # Sample environment template
-├── index.html                      # Security meta headers + font links
+├── next.config.mjs                 # Next.js webpack, alias, and server configurations
+├── vercel.json                     # Vercel deployment framework preset configurations
 ├── tailwind.config.js              # Theme extend, colors, fonts
 ├── src/
-│   ├── main.jsx                    # React entrypoint
-│   ├── App.jsx                     # Root state & ThemeProvider wrapper
+│   ├── App.jsx                     # Root client state & ThemeProvider wrapper
 │   ├── index.css                   # Fluid typography, themes, keyframes
+│   ├── app/
+│   │   ├── layout.jsx              # Root Layout (Google fonts, GTag, WebApplication & FAQPage JSON-LD)
+│   │   ├── page.jsx                # Server-rendered home (H1, 107-word description, visible FAQs, ClientApp)
+│   │   ├── sitemap.js              # Dynamic XML sitemap generator
+│   │   └── robots.js               # Dynamic robots.txt generator
 │   ├── components/
+│   │   ├── ClientApp.jsx           # "use client" re-export wrapper for App.jsx
 │   │   ├── Analyzer.jsx            # Main orchestrator & dual-column layout
 │   │   ├── Header.jsx              # Navbar, provider pills, model select, BYOK input
 │   │   ├── HeroSection.jsx         # Title, badge pills, stat strip
@@ -204,3 +210,5 @@ Rules:
 - [x] Local PDF canvas rendering with interactive line highlighting & scroll-to-line sync.
 - [x] IndexedDB scan history drawer with full report re-hydration.
 - [x] Single-click PDF report export (`jsPDF`).
+- [x] Full Server-Side Rendering (SSR/SSG) of core landing page content (H1, 107-word description paragraph, FAQs).
+- [x] Search, GEO, and AEO optimization including dynamic sitemap/robots, canonical tags, OG/Twitter card validation, and structured JSON-LD schemas (WebApplication & FAQPage).
