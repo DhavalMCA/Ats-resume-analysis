@@ -21,6 +21,7 @@ export function OptimizedResumeView({ originalText, suggestions = [], fileName }
 
   // 1. Automatically reconstruct optimized text on load
   useEffect(() => {
+    if (!originalText) return;
     // Attempt to extract name and basic info from original text
     const lines = originalText.split('\n');
     let inferredName = '';
