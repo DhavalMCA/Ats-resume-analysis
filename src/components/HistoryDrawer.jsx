@@ -32,9 +32,10 @@ export function HistoryDrawer({ isOpen, onClose, onSelectHistoryItem, onHistoryU
   };
 
   const handleClearAll = async () => {
-    if (window.confirm('Are you sure you want to delete all past analyses from IndexedDB?')) {
+    if (window.confirm('Are you sure you want to delete all past analyses from IndexedDB? This action cannot be undone.')) {
       await clearAllAnalyses();
       await loadHistory();
+      onHistoryUpdated?.(0);
     }
   };
 
@@ -57,13 +58,27 @@ export function HistoryDrawer({ isOpen, onClose, onSelectHistoryItem, onHistoryU
               </div>
             </div>
 
-            <button
-              onClick={onClose}
-              data-testid="close-history-drawer-btn"
-              className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            <div className="flex items-center gap-2">
+              {historyItems.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleClearAll}
+                  data-testid="clear-all-history-btn"
+                  className="px-2.5 py-1 text-xs font-mono font-medium bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg transition-colors flex items-center gap-1"
+                  title="Clear All History"
+                >
+                  <Trash2 className="w-3.5 h-3.5" /> Clear All
+                </button>
+              )}
+
+              <button
+                onClick={onClose}
+                data-testid="close-history-drawer-btn"
+                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           {/* List Content */}

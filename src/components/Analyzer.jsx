@@ -10,10 +10,10 @@ import { FlaggedPatterns } from './FlaggedPatterns';
 import { SuggestionCard } from './SuggestionCard';
 import { analyzeResume } from '../lib/llm';
 import { saveAnalysis } from '../lib/history';
-import { exportAnalysisReport } from '../lib/pdfExport';
+import { exportAnalysisReport, exportChangesPdf } from '../lib/pdfExport';
 import { 
   Sparkles, Download, RotateCcw, FileText, CheckCircle2, 
-  AlertCircle, ChevronDown, ChevronUp, Key, ShieldCheck 
+  AlertCircle, ChevronDown, ChevronUp, Key, ShieldCheck, FileSpreadsheet
 } from 'lucide-react';
 
 const SAMPLE_JOB_DESCRIPTION = `Senior Frontend Engineer (React & TypeScript)
@@ -147,6 +147,15 @@ export function Analyzer({
       jobDescription,
     });
     showToast('Report PDF downloaded!', 'success');
+  };
+
+  const handleExportChangesPdf = () => {
+    if (!analysisResult) return;
+    exportChangesPdf({
+      fileName: parsedPdf?.fileName,
+      result: analysisResult,
+    });
+    showToast('Changes PDF exported successfully!', 'success');
   };
 
   // Split rewrites into required vs optional polish
@@ -322,14 +331,27 @@ export function Analyzer({
                     </span>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={handleExportPdf}
-                    data-testid="export-pdf-btn"
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-mono border border-slate-700 transition-colors"
-                  >
-                    <Download className="w-3.5 h-3.5 text-amber-400" /> Export PDF
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleExportChangesPdf}
+                      data-testid="export-changes-pdf-btn"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-xl text-xs font-mono transition-colors"
+                      title="Export only bullet rewrites & changes to PDF"
+                    >
+                      <Download className="w-3.5 h-3.5 text-amber-400" /> Export Changes PDF
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleExportPdf}
+                      data-testid="export-pdf-btn"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-mono border border-slate-700 transition-colors"
+                      title="Export full ATS audit report to PDF"
+                    >
+                      <Download className="w-3.5 h-3.5 text-amber-400" /> Full Report PDF
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex flex-wrap items-center justify-around gap-4 py-2">
@@ -381,13 +403,23 @@ export function Analyzer({
 
               {/* Rewrites Section */}
               <div className="space-y-4 pt-2">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-2">
                   <h3 className="font-heading font-extrabold text-lg text-white">
                     Strategic Bullet Rewrites
                   </h3>
-                  <span className="text-xs font-mono text-slate-400">
-                    {suggestions.length} Suggestions Generated
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-mono text-slate-400">
+                      {suggestions.length} Suggestions
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleExportChangesPdf}
+                      className="flex items-center gap-1 px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-lg text-xs font-mono transition-colors"
+                      title="Download Changes PDF"
+                    >
+                      <Download className="w-3 h-3 text-amber-400" /> Export Changes PDF
+                    </button>
+                  </div>
                 </div>
 
                 {/* Required Rewrites */}

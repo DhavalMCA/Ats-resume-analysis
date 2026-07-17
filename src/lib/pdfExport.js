@@ -159,3 +159,139 @@ export function exportAnalysisReport({ fileName, result, jobDescription }) {
 
   doc.save(`ATS_Analysis_${fileName ? fileName.replace(/\.[^/.]+$/, "") : "Resume"}.pdf`);
 }
+
+export function exportChangesPdf({ fileName, result }) {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  let y = 20;
+
+  const suggestions = result?.suggestions || [];
+  const requiredList = suggestions.filter(s => s.priority === 'required' || !s.priority);
+  const optionalList = suggestions.filter(s => s.priority === 'optional');
+
+  // Title
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(20);
+  doc.setTextColor(245, 158, 11); // Amber
+  doc.text('Resume Changes & Bullet Rewrites', 14, y);
+  y += 8;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(120, 120, 120);
+  doc.text(`Target File: ${fileName || 'Resume.pdf'} | Total Suggestions: ${suggestions.length} | Exported: ${new Date().toLocaleDateString()}`, 14, y);
+  y += 10;
+
+  doc.setLineWidth(0.5);
+  doc.setDrawColor(220, 220, 220);
+  doc.line(14, y, pageWidth - 14, y);
+  y += 12;
+
+  // Impact Summary
+  if (result?.ats_score_before !== undefined && result?.ats_score_after !== undefined) {
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(14, y, pageWidth - 28, 18, 3, 3, 'F');
+
+    doc.setFontSize(10.5);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 41, 59);
+    doc.text(`ATS Score Improvement: ${result.ats_score_before} -> ${result.ats_score_after} pts (+${result.ats_score_after - result.ats_score_before} pts)`, 18, y + 11);
+    y += 24;
+  }
+
+  // Required Priority Rewrites
+  if (requiredList.length > 0) {
+    checkPageBreak(30);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.setTextColor(220, 38, 38);
+    doc.text(`Priority Strategic Rewrites (${requiredList.length})`, 14, y);
+    y += 8;
+
+    requiredList.forEach((s, idx) => {
+      checkPageBreak(45);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.setTextColor(30, 41, 59);
+      doc.text(`#${idx + 1} Original (+${s.impact_points || 5} pts impact):`, 14, y);
+      y += 5;
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(100, 116, 139);
+      const splitOrig = doc.splitTextToSize(`"${s.original}"`, pageWidth - 32);
+      doc.text(splitOrig, 18, y);
+      y += splitOrig.length * 4.5 + 3;
+
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(16, 185, 129); // Emerald
+      doc.text('Improved Bullet:', 14, y);
+      y += 5;
+
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(15, 23, 42);
+      const splitImp = doc.splitTextToSize(`"${s.improved}"`, pageWidth - 32);
+      doc.text(splitImp, 18, y);
+      y += splitImp.length * 4.5 + 3;
+
+      if (s.reason) {
+        doc.setFont('helvetica', 'italic');
+        doc.setFontSize(8.5);
+        doc.setTextColor(148, 163, 184);
+        const splitReason = doc.splitTextToSize(`Reason: ${s.reason}`, pageWidth - 32);
+        doc.text(splitReason, 18, y);
+        y += splitReason.length * 4 + 4;
+      }
+
+      y += 4;
+    });
+  }
+
+  // Optional Polish Rewrites
+  if (optionalList.length > 0) {
+    checkPageBreak(30);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.setTextColor(100, 116, 139);
+    doc.text(`Optional Fine-Tuning Polish (${optionalList.length})`, 14, y);
+    y += 8;
+
+    optionalList.forEach((s, idx) => {
+      checkPageBreak(35);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9.5);
+      doc.setTextColor(71, 85, 105);
+      doc.text(`Optional #${idx + 1}:`, 14, y);
+      y += 5;
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(15, 23, 42);
+      const splitImp = doc.splitTextToSize(`"${s.improved}"`, pageWidth - 32);
+      doc.text(splitImp, 18, y);
+      y += splitImp.length * 4.5 + 2;
+
+      if (s.reason) {
+        doc.setFont('helvetica', 'italic');
+        doc.setFontSize(8.5);
+        doc.setTextColor(148, 163, 184);
+        const splitReason = doc.splitTextToSize(`Reason: ${s.reason}`, pageWidth - 32);
+        doc.text(splitReason, 18, y);
+        y += splitReason.length * 4 + 4;
+      }
+      y += 4;
+    });
+  }
+
+  function checkPageBreak(neededHeight) {
+    if (y + neededHeight > doc.internal.pageSize.getHeight() - 15) {
+      doc.addPage();
+      y = 20;
+    }
+  }
+
+  doc.save(`Resume_Changes_${fileName ? fileName.replace(/\.[^/.]+$/, "") : "Rewrites"}.pdf`);
+}
+
