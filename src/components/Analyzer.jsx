@@ -323,33 +323,35 @@ export function Analyzer({
               
               {/* Score Card Banner */}
               <div className="p-6 bg-slate-900/90 border border-slate-800 rounded-3xl shadow-xl space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-heading font-extrabold text-lg text-white">ATS Impact Index</span>
-                    <span className="px-2 py-0.5 text-[10px] font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full">
+                    <span className="px-2.5 py-0.5 text-[10px] font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full shrink-0 whitespace-nowrap">
                       +{scoreDelta > 0 ? scoreDelta : 0} PTS DELTA
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 shrink-0 flex-wrap">
                     <button
                       type="button"
                       onClick={handleExportChangesPdf}
                       data-testid="export-changes-pdf-btn"
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-xl text-xs font-mono transition-colors"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-xl text-xs font-mono font-medium transition-all shrink-0 whitespace-nowrap shadow-sm"
                       title="Export only bullet rewrites & changes to PDF"
                     >
-                      <Download className="w-3.5 h-3.5 text-amber-400" /> Export Changes PDF
+                      <Download className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                      <span>Export Changes</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={handleExportPdf}
                       data-testid="export-pdf-btn"
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-mono border border-slate-700 transition-colors"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-mono font-medium border border-slate-700 transition-all shrink-0 whitespace-nowrap shadow-sm"
                       title="Export full ATS audit report to PDF"
                     >
-                      <Download className="w-3.5 h-3.5 text-amber-400" /> Full Report PDF
+                      <FileText className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <span>Full Report</span>
                     </button>
                   </div>
                 </div>
