@@ -44,6 +44,7 @@ export function Analyzer({
   const [errorMsg, setErrorMsg] = useState(null);
   const [activeHighlightText, setActiveHighlightText] = useState(null);
   const [toastMessage, setToastMessage] = useState(null);
+  const [openFaqIndex, setOpenFaqIndex] = useState(null);
 
   // Restore state when item selected from History Drawer
   useEffect(() => {
@@ -531,6 +532,75 @@ export function Analyzer({
           </div>
         </div>
       )}
+
+
+      {/* About & Explanatory section (helps with AI search engine citation / Perplexity) */}
+      <section id="about" className="max-w-4xl mx-auto px-4 pt-12 border-t border-slate-800/60 space-y-6">
+        <h2 className="font-heading text-2xl font-bold text-white text-center">
+          Free ATS Resume Checker & Compatibility Online Tool
+        </h2>
+        <div className="p-6 bg-slate-900/40 border border-slate-800/80 rounded-2xl backdrop-blur-sm space-y-4">
+          <p className="text-sm text-slate-300 leading-relaxed font-sans">
+            Resume Intelligence is a privacy-first, <strong>ats resume analyzer with no signup</strong> that allows you to check resume ATS compatibility free. It conducts a deep analysis of your resume against any target job description directly in your browser. Our analyzer highlights keyword gaps, checks for formatting issues, provides line-by-line bullet optimization suggestions, and runs a simulated recruiter decision matrix.
+          </p>
+          <p className="text-sm text-slate-300 leading-relaxed font-sans">
+            Everything operates under a secure <strong>BYOK (Bring Your Own Key)</strong> architecture. Your PDF documents are parsed and analyzed entirely locally using your browser's processor. None of your resume text, job description, or API keys are ever stored on our servers, ensuring your professional data remains 100% confidential.
+          </p>
+        </div>
+      </section>
+
+      {/* Frequently Asked Questions (FAQ) Accordion */}
+      <section id="faq" className="max-w-4xl mx-auto px-4 pt-12 space-y-6">
+        <h2 className="font-heading text-2xl font-bold text-white text-center">
+          Frequently Asked Questions
+        </h2>
+        <div className="space-y-3">
+          {[
+            {
+              q: "What is an ATS resume score?",
+              a: "An ATS (Applicant Tracking System) resume score is a rating that measures how well your resume matches a job description and how easily it can be parsed by automated recruiting software. Our analyzer helps you identify formatting issues, missing keywords, and readability gaps to maximize your score."
+            },
+            {
+              q: "Is my resume data stored?",
+              a: "No, your privacy is our top priority. The analysis runs 100% client-side inside your browser tab using your own API key (BYOK). Your PDF is parsed locally and never uploaded to any external server."
+            },
+            {
+              q: "How can I improve my ATS score for free?",
+              a: "You can improve your score by tailoring your resume to the job description, inserting relevant keywords from the job listing, avoiding complex formatting like columns or text boxes, and fixing any spelling or grammatical errors."
+            },
+            {
+              q: "Do I need to sign up to use the ATS resume checker?",
+              a: "No signup or registration is required. You can check your resume compatibility completely anonymously and instantly."
+            }
+          ].map((faq, index) => {
+            const isOpen = openFaqIndex === index;
+            return (
+              <div 
+                key={index} 
+                className="border border-slate-800/80 bg-slate-900/40 rounded-2xl overflow-hidden backdrop-blur-sm transition-all duration-200"
+              >
+                <button
+                  type="button"
+                  onClick={() => setOpenFaqIndex(isOpen ? null : index)}
+                  className="w-full p-4 flex items-center justify-between text-left font-sans text-sm font-semibold text-slate-200 hover:text-white transition-colors"
+                >
+                  <span>{faq.q}</span>
+                  {isOpen ? (
+                    <ChevronUp className="w-4 h-4 text-amber-400 shrink-0" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
+                  )}
+                </button>
+                {isOpen && (
+                  <div className="px-4 pb-4 font-sans text-xs sm:text-sm text-slate-400 leading-relaxed border-t border-slate-800/40 pt-3 animate-fade-down">
+                    {faq.a}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </section>
 
       {/* Privacy Guarantee Footer */}
       <footer className="max-w-4xl mx-auto px-4 pt-12 border-t border-slate-800/60 text-center space-y-2">
