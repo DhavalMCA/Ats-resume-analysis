@@ -81,8 +81,13 @@ export const MODEL_CONFIGS = {
     name: 'Groq Cloud',
     defaultModel: 'llama-3.3-70b-versatile',
     options: [
+      { id: 'llama-3.1-8b-instant', label: 'Llama 3.1 8B (Instant - Low Tokens)' },
+      { id: 'llama-3.2-3b-preview', label: 'Llama 3.2 3B (Ultra Light)' },
+      { id: 'llama-3.2-1b-preview', label: 'Llama 3.2 1B (Micro Light)' },
+      { id: 'openai/gpt-oss-20b', label: 'GPT-OSS 20B (Compact & Efficient)' },
+      { id: 'gemma2-9b-it', label: 'Gemma 2 9B (Fast & Light)' },
       { id: 'llama-3.3-70b-versatile', label: 'Llama 3.3 70B (Versatile)' },
-      { id: 'llama-3.1-8b-instant', label: 'Llama 3.1 8B (Instant)' },
+      { id: 'openai/gpt-oss-120b', label: 'GPT-OSS 120B' },
       { id: 'deepseek-r1-distill-llama-70b', label: 'DeepSeek R1 70B (Reasoning)' },
     ]
   },
