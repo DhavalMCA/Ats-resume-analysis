@@ -5,7 +5,7 @@ import {
   MapPin, Globe, Briefcase, Eye, Check, RefreshCw
 } from 'lucide-react';
 
-export function OptimizedResumeView({ originalText, suggestions = [], fileName }) {
+export function OptimizedResumeView({ originalText, suggestions, fileName }) {
   const [personalInfo, setPersonalInfo] = useState({
     fullName: '',
     jobTitle: '',
@@ -18,6 +18,8 @@ export function OptimizedResumeView({ originalText, suggestions = [], fileName }
   const [resumeBody, setResumeBody] = useState('');
   const [showDiffHighlight, setShowDiffHighlight] = useState(true);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
+
+  const safeSuggestions = Array.isArray(suggestions) ? suggestions : [];
 
   // 1. Automatically reconstruct optimized text on load
   useEffect(() => {
@@ -67,10 +69,14 @@ export function OptimizedResumeView({ originalText, suggestions = [], fileName }
     let optimizedText = originalText;
     
     // Sort suggestions by length descending to avoid partial matching conflicts
-    const sortedSuggestions = [...suggestions].sort((a, b) => b.original.length - a.original.length);
+    const sortedSuggestions = [...safeSuggestions].sort((a, b) => {
+      const aLen = a?.original?.length || 0;
+      const bLen = b?.original?.length || 0;
+      return bLen - aLen;
+    });
     
     sortedSuggestions.forEach(s => {
-      if (s.original && s.improved && optimizedText.includes(s.original)) {
+      if (s && s.original && s.improved && optimizedText.includes(s.original)) {
         // Use regex with safety escape to replace
         const escapedOriginal = s.original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         optimizedText = optimizedText.replace(new RegExp(escapOriginal, 'g'), s.improved);
@@ -79,25 +85,24 @@ export function OptimizedResumeView({ originalText, suggestions = [], fileName }
 
     // Strip out inferred header lines from main body to avoid duplication
     const bodyLines = optimizedText.split('\n');
-    let startIdx = 0;
     let headerLinesCount = 0;
     
-    // Skip first few lines if they match our inferred header info
+    // Skip first few lines if they match our inferred header info (only if non-empty to avoid matching empty strings)
     for (let i = 0; i < Math.min(bodyLines.length, 8); i++) {
       const line = bodyLines[i].trim();
       if (!line) continue;
       if (
-        line === inferredName || 
-        line === inferredTitle || 
-        line.includes(inferredEmail) || 
-        line.includes(inferredPhone)
+        (inferredName && line === inferredName) || 
+        (inferredTitle && line === inferredTitle) || 
+        (inferredEmail && line.includes(inferredEmail)) || 
+        (inferredPhone && line.includes(inferredPhone))
       ) {
         headerLinesCount = i + 1;
       }
     }
     
     setResumeBody(bodyLines.slice(headerLinesCount).join('\n'));
-  }, [originalText, suggestions]);
+  }, [originalText, safeSuggestions]);
 
   const handleDownload = () => {
     exportOptimizedResumePdf({
@@ -112,8 +117,8 @@ export function OptimizedResumeView({ originalText, suggestions = [], fileName }
   const handleReset = () => {
     if (confirm('Are you sure you want to reset all edits to the original optimized text?')) {
       let optimizedText = originalText;
-      suggestions.forEach(s => {
-        if (s.original && s.improved) {
+      safeSuggestions.forEach(s => {
+        if (s && s.original && s.improved) {
           optimizedText = optimizedText.replaceAll(s.original, s.improved);
         }
       });
@@ -153,7 +158,7 @@ export function OptimizedResumeView({ originalText, suggestions = [], fileName }
       // Heuristic: check if this bullet has been rewritten
       let isRewritten = false;
       if (showDiffHighlight) {
-        isRewritten = suggestions.some(s => bulletContent.includes(s.improved));
+        isRewritten = safeSuggestions.some(s => s && s.improved && bulletContent.includes(s.improved));
       }
 
       return (
