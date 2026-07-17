@@ -61,11 +61,15 @@ Rules:
 export const MODEL_CONFIGS = {
   gemini: {
     name: 'Google Gemini',
-    defaultModel: 'gemini-2.0-flash',
+    defaultModel: 'gemini-3.5-flash',
     options: [
-      { id: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash (Fast & Free)' },
-      { id: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash' },
-      { id: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro (Deep Reasoning)' },
+      // ── Gemini 3.x (Latest · July 2026) ──
+      { id: 'gemini-3.5-flash',       label: 'Gemini 3.5 Flash ⭐ (Newest · Free)' },
+      { id: 'gemini-3.1-flash-lite',  label: 'Gemini 3.1 Flash-Lite (Fast · Free)' },
+      // ── Gemini 2.5 (Stable) ──
+      { id: 'gemini-2.5-flash',       label: 'Gemini 2.5 Flash (Stable · Free)' },
+      { id: 'gemini-2.5-flash-lite',  label: 'Gemini 2.5 Flash-Lite (Lightweight · Free)' },
+      { id: 'gemini-2.5-pro',         label: 'Gemini 2.5 Pro (Paid · Best Quality)' },
     ]
   },
   openai: {
@@ -385,11 +389,21 @@ async function callGemini({ apiKey, model, resume, jobDescription, signal }) {
   });
 
   if (!response.ok) {
+    if (response.status === 404) {
+      // Model name is invalid or not found in v1beta
+      const errData = await response.json().catch(() => ({}));
+      const apiMsg = errData.error?.message || '';
+      throw new Error(
+        `Gemini model not found: the model you selected (${selectedModel}) is no longer available. ` +
+        `Google shut down Gemini 1.5 and 2.0 models in 2025–2026. Please switch to Gemini 3.5 Flash or Gemini 2.5 Flash in the model dropdown.` +
+        (apiMsg ? ` (API: ${apiMsg})` : '')
+      );
+    }
     if (response.status === 400 || response.status === 401 || response.status === 403) {
       throw new Error('Invalid API key — check your Gemini key at aistudio.google.com/apikey and try again.');
     }
     if (response.status === 429) {
-      throw new Error('Rate limit or free tier quota exceeded on your Google Gemini account. Please wait 30–60 seconds, switch to OpenAI in the header, or generate a new free key at aistudio.google.com/apikey.');
+      throw new Error('Rate limit or free tier quota exceeded on your Google Gemini account. Please wait 30–60 seconds, switch to Groq (free) in the header, or generate a new free key at aistudio.google.com/apikey.');
     }
     const errData = await response.json().catch(() => ({}));
     throw new Error(errData.error?.message || `Gemini API request failed (${response.status})`);
