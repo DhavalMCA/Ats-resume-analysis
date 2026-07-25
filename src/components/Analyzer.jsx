@@ -8,6 +8,7 @@ import { AuthenticityPanel } from './AuthenticityPanel';
 import { ExperienceRealism } from './ExperienceRealism';
 import { FlaggedPatterns } from './FlaggedPatterns';
 import { SuggestionCard } from './SuggestionCard';
+import { AiPromptPanel } from './AiPromptPanel';
 import { analyzeResume } from '../lib/llm';
 import { saveAnalysis } from '../lib/history';
 import { exportAnalysisReport, exportChangesPdf, exportOptimizedResumeMarkdown } from '../lib/pdfExport';
@@ -466,6 +467,13 @@ export function Analyzer({
                   </div>
                 </div>
               )}
+
+              {/* AI Enhancement Prompt */}
+              <AiPromptPanel
+                analysisResult={analysisResult}
+                jobDescription={jobDescription}
+                resumeText={parsedPdf?.fullText}
+              />
 
               {/* Rewrites Section */}
               <div className="space-y-4 pt-2">
