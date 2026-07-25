@@ -1,5 +1,5 @@
-﻿import React, { useState, useMemo } from "react";
-import { Copy, CheckCheck, Sparkles, ChevronDown } from "lucide-react";
+import React, { useState, useMemo } from "react";
+import { Copy, CheckCheck, Sparkles, ChevronDown, Download } from "lucide-react";
 
 /**
  * Segments `text` highlighting all `keywords` occurrences.
@@ -101,6 +101,16 @@ Be direct, specific, and ruthlessly practical. Prioritize changes that will move
     setTimeout(() => setCopied(false), 2500);
   };
 
+  const handleDownload = () => {
+    const blob = new Blob([prompt], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "updated_resume.md";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   if (!analysisResult) return null;
 
   const keywords = analysisResult.ats_missing_keywords || [];
@@ -149,6 +159,15 @@ Be direct, specific, and ruthlessly practical. Prioritize changes that will move
           </p>
           <button
             type="button"
+            onClick={handleDownload}
+            data-testid="download-updated-resume-btn"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-heading font-bold transition-all shadow-md shrink-0 bg-slate-800 hover:bg-slate-700 text-teal-300 border border-teal-500/30 hover:border-teal-400/50"
+            title="Download updated_resume.md"
+          >
+            <Download className="w-3.5 h-3.5" /> Download .md
+          </button>
+          <button
+            type="button"
             onClick={handleCopy}
             data-testid="copy-ai-prompt-btn"
             className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-heading font-bold transition-all shadow-md shrink-0 ${
@@ -195,7 +214,16 @@ Be direct, specific, and ruthlessly practical. Prioritize changes that will move
             </pre>
           </div>
 
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={handleDownload}
+              data-testid="download-updated-resume-expanded-btn"
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-heading font-bold transition-all shadow-md bg-slate-800 hover:bg-slate-700 text-teal-300 border border-teal-500/30 hover:border-teal-400/50"
+              title="Download updated_resume.md"
+            >
+              <Download className="w-3.5 h-3.5" /> Download updated_resume.md
+            </button>
             <button
               type="button"
               onClick={handleCopy}
