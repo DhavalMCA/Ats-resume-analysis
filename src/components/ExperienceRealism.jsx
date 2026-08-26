@@ -13,24 +13,24 @@ export function ExperienceRealism({ experienceRealism, unverifiableClaims = [] }
   const { stated_yoe, implied_seniority, mismatch_severity, evidence = [] } = experienceRealism || {};
 
   const mismatchColors = {
-    none: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-    mild: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-    moderate: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
-    severe: 'bg-red-500/20 text-red-400 border-red-500/40',
+    none: 'bg-[#EBF4EE] text-[#3B7A57] border-[#A8D0B5] dark:bg-[#13261C] dark:text-[#4E9A70] dark:border-[#245037]',
+    mild: 'bg-[#FAF3E5] text-[#D99A2B] border-[#E8C98F] dark:bg-[#272216] dark:text-[#D99A2B] dark:border-[#5C4722]',
+    moderate: 'bg-[#FAF3E5] text-[#D99A2B] border-[#E8C98F] dark:bg-[#272216] dark:text-[#D99A2B] dark:border-[#5C4722]',
+    severe: 'bg-[#FBF0EE] text-[#B85242] border-[#E8B8B0] dark:bg-[#2A1715] dark:text-[#D96957] dark:border-[#592922]',
   };
 
   const badgeStyle = mismatchColors[mismatch_severity?.toLowerCase()] || mismatchColors.none;
 
   return (
-    <div className="p-5 bg-slate-900/90 border border-slate-800 rounded-2xl shadow-xl space-y-4">
+    <div className="p-5 bg-[#FFFDF8] dark:bg-[#162432] border border-[#E2D9C8] dark:border-[#223446] rounded-2xl shadow-sm space-y-4">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="p-2 bg-blue-500/10 rounded-xl text-blue-400">
-            <Briefcase className="w-5 h-5" />
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 bg-[#FAF3E5] dark:bg-[#272216] border border-[#E8C98F] dark:border-[#5C4722] rounded-xl text-[#D99A2B]">
+            <Briefcase className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="font-heading font-bold text-base text-white">Experience & Claims Realism</h3>
-            <p className="text-[11px] font-mono text-slate-400">Seniority Alignment & Proof Probing</p>
+            <h3 className="font-heading font-bold text-base text-[#13232F] dark:text-white">Experience & Claims Realism</h3>
+            <p className="text-[11px] font-mono text-[#52667A] dark:text-slate-400">Seniority Alignment & Evidence Probing</p>
           </div>
         </div>
 
@@ -43,14 +43,14 @@ export function ExperienceRealism({ experienceRealism, unverifiableClaims = [] }
 
       {/* YOE vs Implied Seniority Stats */}
       {experienceRealism && (
-        <div className="grid grid-cols-2 gap-3 p-3 bg-slate-950/60 border border-slate-800/80 rounded-xl text-xs font-mono">
+        <div className="grid grid-cols-2 gap-3 p-3 bg-[#F6F2EA] dark:bg-[#0F1720] border border-[#EDE5D6] dark:border-[#1C2D3E] rounded-xl text-xs font-mono">
           <div>
-            <span className="text-slate-400">Stated YOE:</span>
-            <span className="ml-2 font-bold text-white">{stated_yoe ? `${stated_yoe} Years` : 'Unspecified'}</span>
+            <span className="text-[#52667A] dark:text-slate-400">Stated YOE:</span>
+            <span className="ml-2 font-bold text-[#13232F] dark:text-white">{stated_yoe ? `${stated_yoe} Years` : 'Unspecified'}</span>
           </div>
           <div>
-            <span className="text-slate-400">Implied Seniority:</span>
-            <span className="ml-2 font-bold text-amber-400 capitalize">{implied_seniority || 'Mid'}</span>
+            <span className="text-[#52667A] dark:text-slate-400">Implied Seniority:</span>
+            <span className="ml-2 font-bold text-[#D99A2B] capitalize">{implied_seniority || 'Mid'}</span>
           </div>
         </div>
       )}
@@ -58,10 +58,10 @@ export function ExperienceRealism({ experienceRealism, unverifiableClaims = [] }
       {/* Evidence Bullet Points */}
       {evidence.length > 0 && (
         <div className="space-y-1">
-          <span className="text-[11px] font-mono font-semibold uppercase tracking-wider text-slate-400">
+          <span className="text-[11px] font-mono font-semibold uppercase tracking-wider text-[#52667A] dark:text-slate-400">
             Audit Observations:
           </span>
-          <ul className="space-y-1 text-xs text-slate-300 list-disc list-inside">
+          <ul className="space-y-1 text-xs text-[#13232F] dark:text-slate-300 list-disc list-inside">
             {evidence.map((item, idx) => (
               <li key={idx} className="leading-relaxed">{item}</li>
             ))}
@@ -71,38 +71,38 @@ export function ExperienceRealism({ experienceRealism, unverifiableClaims = [] }
 
       {/* Unverifiable Claims Accordion */}
       {unverifiableClaims.length > 0 && (
-        <div className="pt-2 border-t border-slate-800/80 space-y-2">
-          <div className="text-[11px] font-mono font-semibold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+        <div className="pt-2 border-t border-[#E2D9C8] dark:border-[#223446] space-y-2">
+          <div className="text-[11px] font-mono font-semibold uppercase tracking-wider text-[#D99A2B] flex items-center gap-1.5">
             <HelpCircle className="w-3.5 h-3.5" />
             Unverifiable Claims ({unverifiableClaims.length}) — Probing Questions
           </div>
 
           <div className="space-y-2">
             {unverifiableClaims.map((item, idx) => (
-              <div key={idx} className="border border-slate-800 rounded-xl bg-slate-950/40 overflow-hidden">
+              <div key={idx} className="border border-[#E2D9C8] dark:border-[#223446] rounded-xl bg-[#FFFDF8] dark:bg-[#1C2D3E] overflow-hidden">
                 <button
                   onClick={() => toggleClaim(idx)}
-                  className="w-full p-3 text-left flex items-start justify-between gap-2 hover:bg-slate-800/40 transition-colors"
+                  className="w-full p-3 text-left flex items-start justify-between gap-2 hover:bg-[#F6F2EA]/60 dark:hover:bg-[#0F1720]/60 transition-colors"
                 >
                   <div className="flex items-start gap-2">
-                    <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                    <span className="text-xs font-medium text-slate-200">
+                    <AlertCircle className="w-4 h-4 text-[#D99A2B] shrink-0 mt-0.5" />
+                    <span className="text-xs font-medium text-[#13232F] dark:text-slate-200">
                       "{item.claim}"
                     </span>
                   </div>
                   {openClaims[idx] ? (
-                    <ChevronUp className="w-4 h-4 text-slate-400 shrink-0" />
+                    <ChevronUp className="w-4 h-4 text-[#52667A] shrink-0" />
                   ) : (
-                    <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
+                    <ChevronDown className="w-4 h-4 text-[#52667A] shrink-0" />
                   )}
                 </button>
 
                 {openClaims[idx] && item.probing_questions?.length > 0 && (
-                  <div className="px-3 pb-3 pt-1 border-t border-slate-800/60 bg-amber-500/5">
-                    <p className="text-[11px] font-mono font-bold text-amber-300 mb-1">
+                  <div className="px-3 pb-3 pt-1 border-t border-[#E2D9C8] dark:border-[#223446] bg-[#FAF3E5]/50 dark:bg-[#272216]/50">
+                    <p className="text-[11px] font-mono font-bold text-[#D99A2B] mb-1">
                       Recruiter Probing Interview Questions:
                     </p>
-                    <ul className="space-y-1 text-[11px] text-slate-300 list-disc list-inside">
+                    <ul className="space-y-1 text-[11px] text-[#13232F] dark:text-slate-300 list-disc list-inside">
                       {item.probing_questions.map((q, qIdx) => (
                         <li key={qIdx} className="leading-normal">{q}</li>
                       ))}

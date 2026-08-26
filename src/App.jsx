@@ -71,7 +71,7 @@ export default function App() {
 
   return (
     <ThemeProvider>
-      <div className="relative min-h-screen bg-[#0a0d14] text-slate-100 font-sans antialiased bg-tech-grid transition-colors duration-300">
+      <div className="relative min-h-screen bg-[#F6F2EA] dark:bg-[#0F1720] text-[#13232F] dark:text-slate-100 font-sans antialiased bg-paper-grid transition-colors duration-300">
         {/* Background Ambient Glowing Blobs */}
         <div className="ambient-blobs">
           <div className="ambient-blob-1" />

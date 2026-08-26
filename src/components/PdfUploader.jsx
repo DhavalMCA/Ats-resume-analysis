@@ -1,6 +1,9 @@
 import React, { useState, useRef } from 'react';
-import { FileUp, FileText, CheckCircle2, AlertCircle, Trash2, Loader2 } from 'lucide-react';
 import { parsePdfDocument } from '../lib/pdfUtils';
+import { BrandMark } from './BrandMark';
+import { 
+  FileUp, FileText, CheckCircle2, AlertCircle, Trash2, Loader2, RefreshCw
+} from 'lucide-react';
 
 export function PdfUploader({ onPdfParsed, parsedPdf, onClearPdf }) {
   const [isDragging, setIsDragging] = useState(false);
@@ -18,12 +21,12 @@ export function PdfUploader({ onPdfParsed, parsedPdf, onClearPdf }) {
     const hasPdfMime = file.type === 'application/pdf' || file.type === '';
 
     if (!hasPdfExtension || !hasPdfMime) {
-      setError('Please select a valid PDF document (.pdf).');
+      setError('Please select a valid PDF document (.pdf). Unsupported file format.');
       return;
     }
 
     if (file.size > 10 * 1024 * 1024) {
-      setError('PDF file size must be less than 10MB.');
+      setError('PDF file size exceeds 10MB limit. Please upload a smaller PDF file.');
       return;
     }
 
@@ -40,7 +43,7 @@ export function PdfUploader({ onPdfParsed, parsedPdf, onClearPdf }) {
       });
     } catch (err) {
       console.error('PDF Parsing Error:', err);
-      setError('Failed to parse PDF document locally. Please ensure it is a valid PDF.');
+      setError('Failed to parse PDF document locally. Please ensure it is a valid, unencrypted PDF.');
     } finally {
       setIsParsing(false);
     }
@@ -66,45 +69,62 @@ export function PdfUploader({ onPdfParsed, parsedPdf, onClearPdf }) {
   };
 
   return (
-    <div className="w-full">
-      <label className="block text-xs font-mono font-semibold uppercase tracking-[0.2em] text-slate-400 mb-2">
-        1. Upload Resume (PDF)
-      </label>
+    <div className="w-full space-y-2">
+      <div className="flex items-center justify-between">
+        <label className="block text-xs font-mono font-bold uppercase tracking-wider text-[#13232F] dark:text-slate-200">
+          Step 1: Resume Document
+        </label>
+        {parsedPdf && (
+          <span className="text-[11px] font-mono text-[#3B7A57] dark:text-[#4E9A70] flex items-center gap-1 font-semibold">
+            <CheckCircle2 className="w-3.5 h-3.5" /> Ready for review
+          </span>
+        )}
+      </div>
 
       {parsedPdf ? (
-        /* Parsed State Card */
-        <div className="p-4 bg-slate-900/90 border border-emerald-500/30 rounded-2xl flex items-center justify-between shadow-lg relative group">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+        /* Parsed State Card — Paper Card */
+        <div className="p-4 bg-[#FFFDF8] dark:bg-[#162432] border border-[#A8D0B5] dark:border-[#245037] rounded-2xl flex items-center justify-between shadow-sm relative group">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-[#EBF4EE] dark:bg-[#13261C] border border-[#A8D0B5] dark:border-[#245037] flex items-center justify-center text-[#3B7A57] dark:text-[#4E9A70] shrink-0">
               <FileText className="w-5 h-5" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-heading font-medium text-sm text-white max-w-[200px] sm:max-w-xs truncate">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-heading font-bold text-sm text-[#13232F] dark:text-white truncate max-w-xs sm:max-w-md">
                   {parsedPdf.fileName}
                 </span>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-mono font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-mono font-semibold bg-[#EBF4EE] dark:bg-[#13261C] text-[#3B7A57] dark:text-[#4E9A70] rounded-full border border-[#A8D0B5] dark:border-[#245037]">
                   <CheckCircle2 className="w-3 h-3" />
-                  Parsed locally · never uploaded
+                  Parsed locally · Zero upload
                 </span>
               </div>
-              <p className="text-[11px] font-mono text-slate-400 mt-0.5">
+              <p className="text-[11px] font-mono text-[#52667A] dark:text-slate-400 mt-0.5">
                 {(parsedPdf.fileSize / 1024).toFixed(1)} KB · {parsedPdf.pageCount} {parsedPdf.pageCount === 1 ? 'Page' : 'Pages'}
               </p>
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={onClearPdf}
-            className="p-2 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-xl transition-all"
-            title="Remove PDF"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-1 shrink-0 ml-2">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="p-2 text-[#52667A] dark:text-slate-400 hover:text-[#D99A2B] hover:bg-[#F6F2EA] dark:hover:bg-[#1C2D3E] rounded-xl transition-all"
+              title="Replace PDF resume"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={onClearPdf}
+              className="p-2 text-[#52667A] dark:text-slate-400 hover:text-[#B85242] hover:bg-[#FBF0EE] dark:hover:bg-[#2A1715] rounded-xl transition-all"
+              title="Remove PDF resume"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       ) : (
-        /* Dropzone Card */
+        /* Dropzone Card — Paper Dropzone */
         <div
           onDrop={handleDrop}
           onDragOver={handleDragOver}
@@ -113,8 +133,8 @@ export function PdfUploader({ onPdfParsed, parsedPdf, onClearPdf }) {
           data-testid="pdf-dropzone"
           className={`relative cursor-pointer p-6 sm:p-8 rounded-2xl border-2 border-dashed transition-all text-center flex flex-col items-center justify-center ${
             isDragging
-              ? 'border-amber-400 bg-amber-500/10 scale-[1.01]'
-              : 'border-slate-800 hover:border-slate-700 bg-slate-900/60 hover:bg-slate-900/90'
+              ? 'border-[#D99A2B] bg-[#FAF3E5] dark:bg-[#272216] scale-[1.01]'
+              : 'border-[#E2D9C8] dark:border-[#223446] hover:border-[#D99A2B] bg-[#FFFDF8] dark:bg-[#162432] hover:bg-[#F6F2EA]/60 dark:hover:bg-[#1C2D3E]/60 shadow-sm'
           }`}
         >
           <input
@@ -127,20 +147,22 @@ export function PdfUploader({ onPdfParsed, parsedPdf, onClearPdf }) {
           />
 
           {isParsing ? (
-            <div className="flex flex-col items-center gap-2 py-4">
-              <Loader2 className="w-8 h-8 text-amber-400 animate-spin" />
-              <p className="text-sm font-mono text-slate-300">Extracting text & page coordinates locally...</p>
+            <div className="flex flex-col items-center gap-2.5 py-4">
+              <Loader2 className="w-8 h-8 text-[#D99A2B] animate-spin" />
+              <p className="text-xs font-mono text-[#13232F] dark:text-slate-200">
+                Reading PDF structure & page bounding coordinates locally…
+              </p>
             </div>
           ) : (
             <>
-              <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-3 shadow-lg shadow-amber-500/5">
-                <FileUp className="w-6 h-6" />
+              <div className="w-12 h-12 rounded-2xl bg-[#FAF3E5] dark:bg-[#272216] border border-[#E8C98F] dark:border-[#5C4722] flex items-center justify-center text-[#D99A2B] mb-3 shadow-sm">
+                <BrandMark size={24} />
               </div>
-              <p className="font-heading font-semibold text-sm text-white mb-1">
-                Drag and drop your PDF resume here, or <span className="text-amber-400 underline decoration-amber-400/40">browse</span>
+              <p className="font-heading font-semibold text-sm text-[#13232F] dark:text-white mb-1">
+                Drop your resume here, or <span className="text-[#D99A2B] underline decoration-[#D99A2B]/40">browse for a PDF</span>
               </p>
-              <p className="text-xs font-mono text-slate-500">
-                PDF format only · Max 10MB · Parsed completely inside your browser
+              <p className="text-xs font-mono text-[#52667A] dark:text-slate-400">
+                PDF format only · Maximum 10MB · Parsed 100% inside your browser
               </p>
             </>
           )}
@@ -148,7 +170,7 @@ export function PdfUploader({ onPdfParsed, parsedPdf, onClearPdf }) {
       )}
 
       {error && (
-        <div className="mt-2 text-xs font-mono text-red-400 flex items-center gap-1.5 p-2 bg-red-500/10 border border-red-500/20 rounded-xl">
+        <div className="text-xs font-mono text-[#B85242] dark:text-[#D96957] flex items-center gap-2 p-3 bg-[#FBF0EE] dark:bg-[#2A1715] border border-[#E8B8B0] dark:border-[#592922] rounded-xl animate-fade-down">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{error}</span>
         </div>

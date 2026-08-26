@@ -9,15 +9,20 @@ import { ExperienceRealism } from './ExperienceRealism';
 import { FlaggedPatterns } from './FlaggedPatterns';
 import { SuggestionCard } from './SuggestionCard';
 import { AiPromptPanel } from './AiPromptPanel';
+import { BrandMark } from './BrandMark';
 import { analyzeResume } from '../lib/llm';
 import { saveAnalysis } from '../lib/history';
 import { exportAnalysisReport, exportChangesPdf, exportOptimizedResumeMarkdown } from '../lib/pdfExport';
 import { 
   Sparkles, Download, RotateCcw, FileText, CheckCircle2, 
-  AlertCircle, ChevronDown, ChevronUp, Key, ShieldCheck, FileText as FileIcon
+  AlertCircle, ChevronDown, ChevronUp, Key, ShieldCheck, FileText as FileIcon,
+  Check, ArrowRight, Layers, Lock, Cpu
 } from 'lucide-react';
 
-const SAMPLE_JOB_DESCRIPTION = `Senior Frontend Engineer (React & TypeScript)
+const SAMPLE_JDS = {
+  frontend: {
+    title: 'Senior Frontend',
+    text: `Senior Frontend Engineer (React & TypeScript)
 
 Responsibilities:
 - Architect and develop high-performance, responsive web applications using React 18, TypeScript, and TailwindCSS.
@@ -28,7 +33,39 @@ Responsibilities:
 Requirements:
 - 5+ years of software development experience with expertise in modern JavaScript (ESNext), TypeScript, React, state management, and HTML5 canvas/SVG rendering.
 - Proven track record of shipping production-grade applications with zero backend latency, offline capabilities (PWA/IndexedDB), and accessibility compliance (WCAG 2.1 AA).
-- Deep understanding of Web Workers, asynchronous JS concurrency, performance metrics (LCP, CLS, FID), and state synchronization.`;
+- Deep understanding of Web Workers, asynchronous JS concurrency, performance metrics (LCP, CLS, FID), and state synchronization.`
+  },
+  fullstack: {
+    title: 'Full-Stack Eng',
+    text: `Full-Stack Software Engineer (Node.js, React & Cloud)
+
+Responsibilities:
+- Design and build end-to-end web applications, microservices, and APIs using Node.js, Next.js, TypeScript, and PostgreSQL.
+- Implement robust authentication, data encryption, rate limiting, and RBAC authorization across distributed microservices.
+- Manage CI/CD pipelines, containerized deployments (Docker, Kubernetes), and cloud infrastructure on AWS/GCP.
+- Monitor application performance (APM, Datadog), write comprehensive unit/integration tests, and troubleshoot production issues.
+
+Requirements:
+- 4+ years of full-stack engineering experience building production systems at scale.
+- Hands-on expertise with RESTful & GraphQL APIs, ORMs (Prisma, Drizzle), serverless architectures, and SQL database tuning.
+- Strong knowledge of security best practices (OWASP Top 10, XSS/CSRF prevention, secret management) and system architecture.`
+  },
+  devops: {
+    title: 'DevOps / Cloud',
+    text: `Senior Cloud DevOps & Site Reliability Engineer (AWS & K8s)
+
+Responsibilities:
+- Automate cloud infrastructure provisioning using Terraform, Helm, and Ansible across AWS multi-region deployments.
+- Build and maintain highly resilient Kubernetes clusters, Service Mesh (Istio), and GitOps deployment pipelines (ArgoCD).
+- Establish end-to-end observability, distributed tracing, alerting, and SLA/SLO monitoring using Prometheus, Grafana, and Jaeger.
+- Enforce infrastructure security hardening, IAM least-privilege policies, zero-trust networking, and automated compliance scanning.
+
+Requirements:
+- 5+ years in DevOps, SRE, or Cloud Infrastructure engineering with deep AWS/GCP and Linux sysadmin expertise.
+- Production experience with Docker, Kubernetes, Infrastructure-as-Code (Terraform), Python/Bash scripting, and CI/CD workflows.
+- Strong problem-solving skills for incident management, disaster recovery planning, and cost optimization.`
+  }
+};
 
 export function Analyzer({ 
   apiKey, 
@@ -53,7 +90,6 @@ export function Analyzer({
       setJobDescription(selectedHistoryItem.jobDescription || '');
       setAnalysisResult(selectedHistoryItem.result);
       setErrorMsg(null);
-      // Re-hydrate PDF from blob if present
       if (selectedHistoryItem.fileBlob) {
         import('../lib/pdfUtils').then(({ parsePdfDocument }) => {
           parsePdfDocument(selectedHistoryItem.fileBlob).then((parsedData) => {
@@ -73,7 +109,10 @@ export function Analyzer({
     setTimeout(() => setToastMessage(null), 4000);
   };
 
-  const canRunAnalysis = Boolean(apiKey && apiKey.trim() && parsedPdf?.fullText && jobDescription.trim());
+  const hasApiKey = Boolean(apiKey && apiKey.trim());
+  const hasPdf = Boolean(parsedPdf?.fullText);
+  const hasJd = Boolean(jobDescription.trim());
+  const canRunAnalysis = hasApiKey && hasPdf && hasJd;
 
   const handleRunAnalysis = async () => {
     if (!canRunAnalysis || isAnalyzing) return;
@@ -94,7 +133,6 @@ export function Analyzer({
       setAnalysisResult(result);
       showToast('ATS Analysis completed successfully!', 'success');
 
-      // Auto-save to IndexedDB history
       try {
         await saveAnalysis({
           fileName: parsedPdf.fileName,
@@ -108,7 +146,6 @@ export function Analyzer({
         console.error('Failed to save to history:', hErr);
       }
 
-      // Smooth scroll to results
       setTimeout(() => {
         document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
       }, 300);
@@ -138,10 +175,6 @@ export function Analyzer({
     setActiveHighlightText(null);
   };
 
-  const handleLoadSampleJd = () => {
-    setJobDescription(SAMPLE_JOB_DESCRIPTION);
-  };
-
   const handleExportPdf = () => {
     if (!analysisResult) return;
     exportAnalysisReport({
@@ -161,8 +194,6 @@ export function Analyzer({
     showToast('Changes PDF exported successfully!', 'success');
   };
 
-
-
   const handleExportOptimizedResumeMarkdown = () => {
     if (!analysisResult || !parsedPdf) return;
     exportOptimizedResumeMarkdown({
@@ -173,7 +204,6 @@ export function Analyzer({
     showToast('Optimized Resume Markdown downloaded!', 'success');
   };
 
-  // Split rewrites into required vs optional polish
   const suggestions = analysisResult?.suggestions || [];
   const requiredRewrites = suggestions.filter(s => s.priority === 'required' || !s.priority);
   const optionalRewrites = suggestions.filter(s => s.priority === 'optional');
@@ -183,19 +213,19 @@ export function Analyzer({
   const scoreDelta = atsAfter - atsBefore;
 
   return (
-    <div className="space-y-10 pb-20">
+    <div className="space-y-16 pb-24">
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 animate-fade-up">
-          <div className={`p-4 rounded-2xl border shadow-2xl flex items-center gap-3 font-mono text-xs ${
+          <div className={`p-4 rounded-2xl border shadow-xl flex items-center gap-3 font-mono text-xs ${
             toastMessage.type === 'error'
-              ? 'bg-red-950/90 border-red-500/50 text-red-200'
-              : 'bg-slate-900/95 border-emerald-500/50 text-emerald-300'
+              ? 'bg-[#FBF0EE] border-[#E8B8B0] text-[#B85242] dark:bg-[#2A1715] dark:text-[#D96957]'
+              : 'bg-[#FFFDF8] border-[#A8D0B5] text-[#3B7A57] dark:bg-[#162432] dark:text-[#4E9A70]'
           }`}>
             {toastMessage.type === 'error' ? (
-              <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
+              <AlertCircle className="w-5 h-5 text-[#B85242] shrink-0" />
             ) : (
-              <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+              <CheckCircle2 className="w-5 h-5 text-[#3B7A57] shrink-0" />
             )}
             <span>{toastMessage.msg}</span>
           </div>
@@ -203,99 +233,174 @@ export function Analyzer({
       )}
 
       {/* Hero Header */}
-      <HeroSection provider={provider} model={model} />
+      <HeroSection 
+        provider={provider} 
+        model={model} 
+        onLoadSampleJd={() => setJobDescription(SAMPLE_JDS.frontend.text)} 
+      />
 
-      {/* Input Form Section */}
-      <div className="max-w-4xl mx-auto px-4 space-y-6">
-        <div className="p-6 sm:p-8 bg-slate-900/80 border border-slate-800 rounded-3xl shadow-2xl backdrop-blur-md space-y-6">
-          
-          {/* Step 1: Upload PDF */}
-          <PdfUploader
-            onPdfParsed={setParsedPdf}
-            parsedPdf={parsedPdf}
-            onClearPdf={() => setParsedPdf(null)}
-          />
+      {/* How-it-Works Section */}
+      <section id="how-it-works" className="max-w-6xl mx-auto px-4 sm:px-6 space-y-6">
+        <div className="text-center space-y-2 max-w-xl mx-auto">
+          <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#D99A2B]">
+            Three-Step Review Process
+          </span>
+          <h2 className="font-heading font-extrabold text-2xl sm:text-3xl text-[#13232F] dark:text-white">
+            How Resume Intelligence works.
+          </h2>
+        </div>
 
-          {/* Step 2: Job Description */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="block text-xs font-mono font-semibold uppercase tracking-[0.2em] text-slate-400">
-                2. Paste Target Job Description
-              </label>
-
-              <button
-                type="button"
-                onClick={handleLoadSampleJd}
-                className="text-xs font-mono text-amber-400 hover:text-amber-300 hover:underline"
-              >
-                + Load sample Senior Frontend JD
-              </button>
-            </div>
-
-            <textarea
-              rows={6}
-              value={jobDescription}
-              onChange={(e) => setJobDescription(e.target.value)}
-              onKeyDown={handleKeyDown}
-              data-testid="job-description-textarea"
-              placeholder="Paste the target job description here (Cmd/Ctrl + Enter to run)..."
-              className="w-full p-4 bg-slate-950/60 border border-slate-800 rounded-2xl text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/80 focus:ring-1 focus:ring-amber-500/50 transition-all font-sans leading-relaxed resize-y"
-            />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="p-6 bg-[#FFFDF8] dark:bg-[#162432] border border-[#E2D9C8] dark:border-[#223446] rounded-2xl space-y-3 shadow-sm relative">
+            <span className="text-2xl font-mono font-bold text-[#D99A2B]">01</span>
+            <h3 className="font-heading font-bold text-lg text-[#13232F] dark:text-white">Bring the context</h3>
+            <p className="text-xs text-[#52667A] dark:text-slate-300 leading-relaxed font-sans">
+              Upload your PDF resume and paste the target job description. PDF parsing runs entirely inside your browser tab.
+            </p>
           </div>
 
-          {/* Warning Banner if API key missing */}
-          {!apiKey && (
-            <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs font-mono text-amber-300">
-              <div className="flex items-center gap-3">
-                <Key className="w-5 h-5 text-amber-400 shrink-0" />
-                <span>
-                  Please paste and save your API key in the header above to run analysis.
-                </span>
+          <div className="p-6 bg-[#FFFDF8] dark:bg-[#162432] border border-[#E2D9C8] dark:border-[#223446] rounded-2xl space-y-3 shadow-sm relative">
+            <span className="text-2xl font-mono font-bold text-[#D99A2B]">02</span>
+            <h3 className="font-heading font-bold text-lg text-[#13232F] dark:text-white">See the evidence</h3>
+            <p className="text-xs text-[#52667A] dark:text-slate-300 leading-relaxed font-sans">
+              Inspect missing keywords, formatting risks, recruiter red flags, and bounding-box text highlights directly on your document pages.
+            </p>
+          </div>
+
+          <div className="p-6 bg-[#FFFDF8] dark:bg-[#162432] border border-[#E2D9C8] dark:border-[#223446] rounded-2xl space-y-3 shadow-sm relative">
+            <span className="text-2xl font-mono font-bold text-[#D99A2B]">03</span>
+            <h3 className="font-heading font-bold text-lg text-[#13232F] dark:text-white">Make the edit</h3>
+            <p className="text-xs text-[#52667A] dark:text-slate-300 leading-relaxed font-sans">
+              Apply prioritized bullet rewrites with concrete metric enhancements, or export full ATS report PDF and Markdown.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Main Review Desk Workspace */}
+      <section id="intake-desk" className="max-w-6xl mx-auto px-4 sm:px-6 space-y-6">
+        
+        {/* Review Desk Container */}
+        <div className="p-6 sm:p-8 bg-[#FFFDF8] dark:bg-[#162432] border border-[#E2D9C8] dark:border-[#223446] rounded-3xl shadow-md space-y-6">
+          
+          {/* Header Bar */}
+          <div className="flex items-center justify-between pb-4 border-b border-[#E2D9C8] dark:border-[#223446]">
+            <div className="flex items-center gap-2">
+              <BrandMark size={24} />
+              <h2 className="font-heading font-bold text-lg text-[#13232F] dark:text-white">
+                Intake Workspace
+              </h2>
+            </div>
+            <span className="text-xs font-mono text-[#52667A] dark:text-slate-400 hidden sm:inline">
+              Review Desk v1.0
+            </span>
+          </div>
+
+          {/* 2-Column Desk Grid (Desktop) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
+            {/* Step 1: Resume Upload Surface (~6 cols) */}
+            <div className="lg:col-span-6">
+              <PdfUploader
+                onPdfParsed={setParsedPdf}
+                parsedPdf={parsedPdf}
+                onClearPdf={() => setParsedPdf(null)}
+              />
+            </div>
+
+            {/* Step 2: Target Role Panel (~6 cols) */}
+            <div className="lg:col-span-6 space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <label className="block text-xs font-mono font-bold uppercase tracking-wider text-[#13232F] dark:text-slate-200">
+                  Step 2: Target Role
+                </label>
+
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[10px] font-mono text-[#52667A] dark:text-slate-400 uppercase">Samples:</span>
+                  {Object.entries(SAMPLE_JDS).map(([key, sample]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setJobDescription(sample.text)}
+                      className="px-2 py-0.5 text-[11px] font-mono bg-[#FAF3E5] dark:bg-[#272216] text-[#D99A2B] border border-[#E8C98F] dark:border-[#5C4722] rounded-lg transition-colors hover:bg-[#D99A2B]/20"
+                    >
+                      + {sample.title}
+                    </button>
+                  ))}
+                </div>
               </div>
+
+              <textarea
+                rows={6}
+                value={jobDescription}
+                onChange={(e) => setJobDescription(e.target.value)}
+                onKeyDown={handleKeyDown}
+                data-testid="job-description-textarea"
+                placeholder="Paste the target job description here (Cmd/Ctrl + Enter to run)..."
+                className="w-full p-4 bg-[#FFFDF8] dark:bg-[#0F1720] border border-[#E2D9C8] dark:border-[#223446] rounded-2xl text-xs sm:text-sm text-[#13232F] dark:text-white placeholder-slate-400 focus:outline-none focus:border-[#D99A2B] font-sans leading-relaxed resize-y shadow-inner"
+              />
+
+              <div className="flex items-center justify-between text-[11px] font-mono text-[#52667A] dark:text-slate-400">
+                <span>{jobDescription.length.toLocaleString()} chars</span>
+                <span>{hasJd ? '✓ Role added' : 'Paste JD text to begin'}</span>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Review Readiness Status Strip */}
+          <div className="p-4 bg-[#F6F2EA] dark:bg-[#0F1720] border border-[#EDE5D6] dark:border-[#1C2D3E] rounded-2xl flex flex-wrap items-center justify-between gap-4 text-xs font-mono">
+            <div className="flex items-center gap-4 flex-wrap">
+              <span className="font-bold text-[#13232F] dark:text-white uppercase tracking-wider text-[11px]">
+                Readiness Check:
+              </span>
+              <span className={`flex items-center gap-1.5 ${hasPdf ? 'text-[#3B7A57] dark:text-[#4E9A70]' : 'text-[#D99A2B]'}`}>
+                {hasPdf ? <CheckCircle2 className="w-3.5 h-3.5" /> : <AlertCircle className="w-3.5 h-3.5" />}
+                1. Resume PDF ({hasPdf ? 'Ready' : 'Needs PDF'})
+              </span>
+              <span className={`flex items-center gap-1.5 ${hasJd ? 'text-[#3B7A57] dark:text-[#4E9A70]' : 'text-[#D99A2B]'}`}>
+                {hasJd ? <CheckCircle2 className="w-3.5 h-3.5" /> : <AlertCircle className="w-3.5 h-3.5" />}
+                2. Target Role ({hasJd ? 'Ready' : 'Needs Text'})
+              </span>
+              <span className={`flex items-center gap-1.5 ${hasApiKey ? 'text-[#3B7A57] dark:text-[#4E9A70]' : 'text-[#D99A2B]'}`}>
+                {hasApiKey ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Key className="w-3.5 h-3.5" />}
+                3. Key ({hasApiKey ? `${provider} Set` : 'Key Needed'})
+              </span>
+            </div>
+
+            {!hasApiKey && (
               <button
                 type="button"
                 onClick={onOpenApiKeyGuide}
-                className="px-3.5 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 hover:text-amber-200 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 shadow-sm"
+                className="text-xs font-mono text-[#D99A2B] hover:underline font-bold"
               >
-                <span>How to get free API keys?</span>
-                <span>→</span>
+                + Configure API Key →
               </button>
-            </div>
-          )}
+            )}
+          </div>
 
-          {/* Error Message Banner */}
+          {/* Error Banner */}
           {errorMsg && (
-            <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-2xl text-xs font-mono text-red-300 space-y-3">
+            <div className="p-4 bg-[#FBF0EE] dark:bg-[#2A1715] border border-[#E8B8B0] dark:border-[#592922] rounded-2xl text-xs font-mono text-[#B85242] dark:text-[#D96957] space-y-3 animate-fade-down">
               <div className="flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
-                <div className="flex-1 min-w-0 space-y-1">
-                  <p className="font-bold text-red-200 text-sm">Analysis Error</p>
+                <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                <div className="flex-1 space-y-1">
+                  <p className="font-bold text-sm">Analysis Error</p>
                   <p className="leading-relaxed">{errorMsg}</p>
-                  {(errorMsg.toLowerCase().includes('rate limit') || errorMsg.toLowerCase().includes('quota')) && (
-                    <div className="mt-2 pt-2 border-t border-red-500/20 space-y-1 text-red-300/80">
-                      <p className="font-semibold text-red-200">Quick fixes:</p>
-                      <ul className="list-disc list-inside space-y-0.5 pl-1">
-                        <li>Switch to a different provider (Groq or Gemini have free tiers)</li>
-                        <li>Wait 30–60 seconds and try again</li>
-                        <li>Check your billing/quota at your provider's dashboard</li>
-                        <li>Generate a new free API key</li>
-                      </ul>
-                    </div>
-                  )}
                 </div>
               </div>
               <div className="flex flex-wrap gap-2 pl-8">
                 <button
                   type="button"
                   onClick={onOpenApiKeyGuide}
-                  className="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-200 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
+                  className="px-3 py-1.5 bg-[#FFFDF8] dark:bg-[#162432] border border-[#E8B8B0] rounded-xl text-xs font-bold transition-all"
                 >
-                  🔑 Key Finder Guide &amp; Free Keys
+                  🔑 Key Guide &amp; Free Keys
                 </button>
                 <button
                   type="button"
                   onClick={() => setErrorMsg(null)}
-                  className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-xl text-xs font-bold transition-all"
+                  className="px-3 py-1.5 bg-[#F6F2EA] dark:bg-[#0F1720] border border-[#EDE5D6] text-[#52667A] rounded-xl text-xs font-bold"
                 >
                   Dismiss
                 </button>
@@ -303,12 +408,12 @@ export function Analyzer({
             </div>
           )}
 
-          {/* Action Row */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 border-t border-slate-800">
+          {/* Primary Action Button Area */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 border-t border-[#E2D9C8] dark:border-[#223446]">
             <button
               type="button"
               onClick={handleClear}
-              className="w-full sm:w-auto px-4 py-2.5 text-xs font-mono text-slate-400 hover:text-white flex items-center justify-center gap-1.5 transition-colors"
+              className="w-full sm:w-auto px-4 py-2 text-xs font-mono text-[#52667A] dark:text-slate-400 hover:text-[#13232F] dark:hover:text-white flex items-center justify-center gap-1.5 transition-colors"
             >
               <RotateCcw className="w-3.5 h-3.5" /> Clear All Inputs
             </button>
@@ -318,53 +423,62 @@ export function Analyzer({
               onClick={handleRunAnalysis}
               disabled={!canRunAnalysis || isAnalyzing}
               data-testid="run-ats-analysis-btn"
-              className={`w-full sm:w-auto px-8 py-3.5 rounded-2xl font-heading font-extrabold text-sm tracking-wide transition-all shadow-xl flex items-center justify-center gap-2.5 ${
+              className={`w-full sm:w-auto px-8 py-3.5 rounded-2xl font-mono font-bold text-xs sm:text-sm tracking-wide transition-all shadow-md flex items-center justify-center gap-2.5 ${
                 canRunAnalysis && !isAnalyzing
-                  ? 'bg-gradient-to-r from-amber-500 to-amber-400 text-slate-950 hover:from-amber-400 hover:to-amber-300 shadow-amber-500/20 hover:scale-[1.02] shimmer-button cursor-pointer'
-                  : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700/60'
+                  ? 'btn-saffron cursor-pointer'
+                  : 'bg-[#F6F2EA] dark:bg-[#1C2D3E] text-[#8295A6] dark:text-slate-500 cursor-not-allowed border border-[#EDE5D6] dark:border-[#223446]'
               }`}
             >
               <Sparkles className={`w-4 h-4 ${isAnalyzing ? 'animate-spin' : ''}`} />
-              {isAnalyzing ? 'Analyzing Resume Architecture...' : 'Run ATS Analysis'}
+              {isAnalyzing ? 'Analyzing Resume Architecture…' : 'Run ATS Analysis'}
             </button>
           </div>
 
-          {/* Progress Beam Bar during analysis */}
+          <p className="text-center text-[11px] font-mono text-[#52667A] dark:text-slate-400 pt-1">
+            Review begins locally inside your browser tab — no files are stored on external servers.
+          </p>
+
+          {/* Stage-based Progress Panel during analysis */}
           {isAnalyzing && (
-            <div className="space-y-2 pt-2 animate-fade-up">
-              <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-amber-500 to-emerald-400 w-1/2 rounded-full animation-tracing-beam" />
+            <div className="p-5 bg-[#FAF3E5] dark:bg-[#272216] border border-[#E8C98F] dark:border-[#5C4722] rounded-2xl space-y-3 animate-fade-up">
+              <div className="w-full h-2 bg-[#F6F2EA] dark:bg-[#0F1720] rounded-full overflow-hidden relative">
+                <div className="absolute inset-0 bg-[#D99A2B] w-1/2 rounded-full animation-tracing-beam" />
               </div>
-              <p className="text-center font-mono text-xs text-amber-400 flex items-center justify-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-                Parsing resume · matching keywords · evaluating recruiter dimensions · generating rewrites
-              </p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-[10px] font-mono text-[#52667A] dark:text-slate-300">
+                <div className="flex items-center gap-1.5 font-bold text-[#D99A2B]">
+                  <span className="w-2 h-2 rounded-full bg-[#D99A2B] animate-ping" />
+                  1. Reading resume
+                </div>
+                <div>2. Comparing role language</div>
+                <div>3. Checking ATS formatting</div>
+                <div>4. Preparing recommendations</div>
+              </div>
             </div>
           )}
 
         </div>
-      </div>
+      </section>
 
       {/* Results Section */}
       {analysisResult && (
-        <div id="results-section" className="max-w-7xl mx-auto px-4 pt-8 border-t border-slate-800/80 animate-fade-up space-y-6">
+        <section id="results-section" className="max-w-7xl mx-auto px-4 sm:px-6 pt-4 space-y-6 animate-fade-up">
           
           {/* Top Banner: Good Enough to Submit */}
           {atsBefore >= 88 && (
-            <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-xs sm:text-sm text-emerald-300 flex items-start gap-3 shadow-lg">
-              <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+            <div className="p-4 bg-[#EBF4EE] dark:bg-[#13261C] border border-[#A8D0B5] dark:border-[#245037] rounded-2xl text-xs sm:text-sm text-[#3B7A57] dark:text-[#4E9A70] flex items-start gap-3 shadow-sm">
+              <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" />
               <div>
-                <span className="font-bold text-white">Good Enough to Submit! </span>
+                <span className="font-bold">Good Enough to Submit! </span>
                 Your resume is already in submit-ready range ({atsBefore}/100). Below are a couple of high-impact rewrites. Everything else is optional polish — don't feel pressured to chase 100.
               </div>
             </div>
           )}
 
-          {/* Dual Column Grid */}
+          {/* Asymmetric Dual Column Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
             {/* LEFT COLUMN: Sticky Canvas PDF Inspector (~58%) */}
-            <div className="lg:col-span-7 lg:sticky lg:top-24">
+            <div className="lg:col-span-7 lg:sticky lg:top-20">
               <PdfHighlightViewer
                 pages={parsedPdf?.pages}
                 aiDetectedLines={analysisResult.ai_detected_lines}
@@ -372,15 +486,15 @@ export function Analyzer({
               />
             </div>
 
-            {/* RIGHT COLUMN: Metrics & Rewrites (~42%) */}
+            {/* RIGHT COLUMN: Metrics & Evidence (~42%) */}
             <div className="lg:col-span-5 space-y-6">
               
               {/* Score Card Banner */}
-              <div className="p-6 bg-slate-900/90 border border-slate-800 rounded-3xl shadow-xl space-y-4">
-                <div className="flex flex-col gap-3 border-b border-slate-800/80 pb-3">
+              <div className="p-6 bg-[#FFFDF8] dark:bg-[#162432] border border-[#E2D9C8] dark:border-[#223446] rounded-3xl shadow-sm space-y-4">
+                <div className="flex flex-col gap-3 border-b border-[#E2D9C8] dark:border-[#223446] pb-3">
                   <div className="flex items-center justify-between">
-                    <span className="font-heading font-extrabold text-lg text-white">ATS Impact Index</span>
-                    <span className="px-2.5 py-0.5 text-[10px] font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full shrink-0 whitespace-nowrap">
+                    <span className="font-heading font-extrabold text-lg text-[#13232F] dark:text-white">ATS Impact Index</span>
+                    <span className="px-2.5 py-0.5 text-[10px] font-mono font-bold bg-[#FAF3E5] dark:bg-[#272216] text-[#D99A2B] border border-[#E8C98F] dark:border-[#5C4722] rounded-full shrink-0">
                       +{scoreDelta > 0 ? scoreDelta : 0} PTS DELTA
                     </span>
                   </div>
@@ -390,21 +504,21 @@ export function Analyzer({
                       type="button"
                       onClick={handleExportOptimizedResumeMarkdown}
                       data-testid="export-optimized-resume-btn"
-                      className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 rounded-xl text-xs font-heading font-extrabold transition-all shadow-md shrink-0 flex-1 justify-center whitespace-nowrap"
+                      className="flex items-center gap-1.5 px-4 py-2 btn-saffron rounded-xl text-xs font-mono font-bold transition-all shadow-sm shrink-0 flex-1 justify-center whitespace-nowrap"
                       title="Download fully optimized ATS-compatible resume in Markdown format (.md)"
                     >
-                      <Sparkles className="w-3.5 h-3.5 text-slate-950 shrink-0" />
-                      <span>Download ATS Resume (MD)</span>
+                      <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                      <span>Download ATS Resume (.md)</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={handleExportChangesPdf}
                       data-testid="export-changes-pdf-btn"
-                      className="flex items-center gap-1.5 px-3 py-2 bg-slate-850 hover:bg-slate-800 text-amber-300 border border-amber-500/30 rounded-xl text-xs font-mono font-medium transition-all shrink-0 justify-center whitespace-nowrap"
+                      className="flex items-center gap-1.5 px-3 py-2 bg-[#F6F2EA] dark:bg-[#1C2D3E] text-[#D99A2B] border border-[#E2D9C8] dark:border-[#223446] rounded-xl text-xs font-mono font-medium transition-all shrink-0 justify-center whitespace-nowrap"
                       title="Export bullet changes to PDF"
                     >
-                      <Download className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                      <Download className="w-3.5 h-3.5 shrink-0" />
                       <span>Changes PDF</span>
                     </button>
 
@@ -412,10 +526,10 @@ export function Analyzer({
                       type="button"
                       onClick={handleExportPdf}
                       data-testid="export-pdf-btn"
-                      className="flex items-center gap-1.5 px-3 py-2 bg-slate-850 hover:bg-slate-800 text-slate-200 border border-slate-700 rounded-xl text-xs font-mono font-medium transition-all shrink-0 justify-center whitespace-nowrap"
+                      className="flex items-center gap-1.5 px-3 py-2 bg-[#F6F2EA] dark:bg-[#1C2D3E] text-[#52667A] dark:text-slate-300 border border-[#E2D9C8] dark:border-[#223446] rounded-xl text-xs font-mono font-medium transition-all shrink-0 justify-center whitespace-nowrap"
                       title="Export full ATS report to PDF"
                     >
-                      <FileIcon className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <FileIcon className="w-3.5 h-3.5 text-[#52667A] shrink-0" />
                       <span>Report PDF</span>
                     </button>
                   </div>
@@ -423,8 +537,8 @@ export function Analyzer({
 
                 <div className="flex flex-wrap items-center justify-around gap-4 py-2">
                   <AtsScoreRing score={atsBefore} label="Current Score" color="amber" size={105} />
-                  <div className="text-xl font-heading font-extrabold text-slate-500 hidden sm:block">→</div>
-                  <AtsScoreRing score={atsAfter} label="Optimized Target" color="emerald" size={105} />
+                  <div className="text-xl font-heading font-extrabold text-[#52667A] hidden sm:block">→</div>
+                  <AtsScoreRing score={atsAfter} label="Target Score" color="emerald" size={105} />
                 </div>
               </div>
 
@@ -451,15 +565,15 @@ export function Analyzer({
 
               {/* Missing Keywords */}
               {analysisResult.ats_missing_keywords?.length > 0 && (
-                <div className="p-5 bg-slate-900/90 border border-slate-800 rounded-2xl shadow-xl space-y-3">
-                  <h3 className="font-heading font-bold text-sm text-white flex items-center gap-2">
-                    <FileIcon className="w-4 h-4 text-amber-400" /> Top Missing ATS Keywords
+                <div className="p-5 bg-[#FFFDF8] dark:bg-[#162432] border border-[#E2D9C8] dark:border-[#223446] rounded-2xl shadow-sm space-y-3">
+                  <h3 className="font-heading font-bold text-sm text-[#13232F] dark:text-white flex items-center gap-2">
+                    <FileIcon className="w-4 h-4 text-[#D99A2B]" /> Top Missing ATS Keywords
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {analysisResult.ats_missing_keywords.map((kw, idx) => (
                       <span
                         key={idx}
-                        className="px-2.5 py-1 text-xs font-mono font-medium bg-amber-500/10 text-amber-300 border border-amber-500/20 rounded-lg"
+                        className="px-2.5 py-1 text-xs font-mono font-medium bg-[#FAF3E5] dark:bg-[#272216] text-[#D99A2B] border border-[#E8C98F] dark:border-[#5C4722] rounded-lg"
                       >
                         + {kw}
                       </span>
@@ -478,20 +592,20 @@ export function Analyzer({
               {/* Rewrites Section */}
               <div className="space-y-4 pt-2">
                 <div className="flex items-center justify-between flex-wrap gap-2">
-                  <h3 className="font-heading font-extrabold text-lg text-white">
+                  <h3 className="font-heading font-extrabold text-lg text-[#13232F] dark:text-white">
                     Strategic Bullet Rewrites
                   </h3>
                   <div className="flex items-center gap-3">
-                    <span className="text-xs font-mono text-slate-400">
+                    <span className="text-xs font-mono text-[#52667A] dark:text-slate-400">
                       {suggestions.length} Suggestions
                     </span>
                     <button
                       type="button"
                       onClick={handleExportOptimizedResumeMarkdown}
-                      className="flex items-center gap-1 px-2.5 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-lg text-xs font-mono transition-colors"
+                      className="flex items-center gap-1 px-2.5 py-1 bg-[#EBF4EE] dark:bg-[#13261C] text-[#3B7A57] dark:text-[#4E9A70] border border-[#A8D0B5] dark:border-[#245037] rounded-lg text-xs font-mono transition-colors"
                       title="Download Optimized Resume Markdown"
                     >
-                      <Sparkles className="w-3 h-3 text-emerald-400" /> Download ATS Resume (MD)
+                      <Sparkles className="w-3 h-3 text-[#3B7A57]" /> Download Resume (.md)
                     </button>
                   </div>
                 </div>
@@ -499,7 +613,7 @@ export function Analyzer({
                 {/* Required Rewrites */}
                 {requiredRewrites.length > 0 && (
                   <div className="space-y-3">
-                    <span className="text-xs font-mono font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1">
+                    <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#D99A2B] flex items-center gap-1">
                       Priority Impact Rewrites ({requiredRewrites.length})
                     </span>
                     {requiredRewrites.map((s, idx) => (
@@ -515,12 +629,12 @@ export function Analyzer({
 
                 {/* Optional Polish Accordion */}
                 {optionalRewrites.length > 0 && (
-                  <details className="group border border-slate-800 bg-slate-900/60 rounded-2xl overflow-hidden shadow-lg">
-                    <summary className="p-4 cursor-pointer flex items-center justify-between text-xs font-mono font-bold uppercase tracking-wider text-slate-400 hover:text-slate-200 select-none">
+                  <details className="group border border-[#E2D9C8] dark:border-[#223446] bg-[#FFFDF8] dark:bg-[#162432] rounded-2xl overflow-hidden shadow-sm">
+                    <summary className="p-4 cursor-pointer flex items-center justify-between text-xs font-mono font-bold uppercase tracking-wider text-[#52667A] dark:text-slate-400 hover:text-[#13232F] dark:hover:text-slate-200 select-none">
                       <span>Optional Polish ({optionalRewrites.length} Fine-Tuning Edits)</span>
                       <ChevronDown className="w-4 h-4 group-open:rotate-180 transition-transform" />
                     </summary>
-                    <div className="p-4 pt-0 space-y-3 border-t border-slate-800/80">
+                    <div className="p-4 pt-0 space-y-3 border-t border-[#E2D9C8] dark:border-[#223446]">
                       {optionalRewrites.map((s, idx) => (
                         <SuggestionCard
                           key={idx}
@@ -538,43 +652,58 @@ export function Analyzer({
             </div>
 
           </div>
-        </div>
+        </section>
       )}
 
+      {/* Privacy Section */}
+      <section id="privacy" className="max-w-4xl mx-auto px-4 sm:px-6 space-y-6">
+        <div className="p-6 sm:p-8 bg-[#FFFDF8] dark:bg-[#162432] border border-[#E2D9C8] dark:border-[#223446] rounded-3xl shadow-sm space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-[#EBF4EE] dark:bg-[#13261C] border border-[#A8D0B5] dark:border-[#245037] rounded-2xl text-[#3B7A57] dark:text-[#4E9A70]">
+              <Lock className="w-6 h-6" />
+            </div>
+            <div>
+              <h2 className="font-heading font-bold text-xl text-[#13232F] dark:text-white">
+                Browser-First Privacy Guarantee
+              </h2>
+              <p className="text-xs font-mono text-[#52667A] dark:text-slate-400">
+                Zero Cloud File Uploads · BYOK Security Model
+              </p>
+            </div>
+          </div>
 
-      {/* About & Explanatory section (helps with AI search engine citation / Perplexity) */}
-      <section id="about" className="max-w-4xl mx-auto px-4 pt-12 border-t border-slate-800/60 space-y-6">
-        <h2 className="font-heading text-2xl font-bold text-white text-center">
-          Free ATS Resume Checker & Compatibility Online Tool
-        </h2>
-        <div className="p-6 bg-slate-900/40 border border-slate-800/80 rounded-2xl backdrop-blur-sm space-y-4">
-          <p className="text-sm text-slate-300 leading-relaxed font-sans">
-            Resume Intelligence is a privacy-first, <strong>ats resume analyzer with no signup</strong> that allows you to check resume ATS compatibility free. It conducts a deep analysis of your resume against any target job description directly in your browser. Our analyzer highlights keyword gaps, checks for formatting issues, provides line-by-line bullet optimization suggestions, and runs a simulated recruiter decision matrix.
-          </p>
-          <p className="text-sm text-slate-300 leading-relaxed font-sans">
-            Everything operates under a secure <strong>BYOK (Bring Your Own Key)</strong> architecture. Your PDF documents are parsed and analyzed entirely locally using your browser's processor. None of your resume text, job description, or API keys are ever stored on our servers, ensuring your professional data remains 100% confidential.
-          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-sans text-[#52667A] dark:text-slate-300 leading-relaxed pt-2">
+            <div className="p-4 bg-[#F6F2EA] dark:bg-[#0F1720] border border-[#EDE5D6] dark:border-[#1C2D3E] rounded-2xl space-y-1">
+              <h4 className="font-mono font-bold text-[#13232F] dark:text-white">1. Local PDF Extraction</h4>
+              <p>Your resume file is parsed using `pdfjs-dist` strictly inside browser worker threads. PDF binary data is never transmitted to any application backend.</p>
+            </div>
+
+            <div className="p-4 bg-[#F6F2EA] dark:bg-[#0F1720] border border-[#EDE5D6] dark:border-[#1C2D3E] rounded-2xl space-y-1">
+              <h4 className="font-mono font-bold text-[#13232F] dark:text-white">2. Direct BYOK Transmission</h4>
+              <p>API requests are sent directly from your browser client to Google Gemini, Groq, Mistral, or OpenAI using the API key saved in `sessionStorage`.</p>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* Frequently Asked Questions (FAQ) Accordion */}
-      <section id="faq" className="max-w-4xl mx-auto px-4 pt-12 space-y-6">
-        <h2 className="font-heading text-2xl font-bold text-white text-center">
+      <section id="faq" className="max-w-4xl mx-auto px-4 sm:px-6 space-y-6">
+        <h2 className="font-heading text-2xl font-bold text-[#13232F] dark:text-white text-center">
           Frequently Asked Questions
         </h2>
         <div className="space-y-3">
           {[
             {
               q: "What is an ATS resume score?",
-              a: "An ATS (Applicant Tracking System) resume score is a rating that measures how well your resume matches a job description and how easily it can be parsed by automated recruiting software. Our analyzer helps you identify formatting issues, missing keywords, and readability gaps to maximize your score."
+              a: "An ATS (Applicant Tracking System) resume score rating measures how well your resume matches a job description and how easily it can be parsed by automated software. Our analyzer highlights formatting risks, missing keywords, and readability gaps."
             },
             {
               q: "Is my resume data stored?",
-              a: "No, your privacy is our top priority. The analysis runs 100% client-side inside your browser tab using your own API key (BYOK). Your PDF is parsed locally and never uploaded to any external server."
+              a: "No. Analysis runs client-side inside your browser tab using your own API key (BYOK). Your PDF is parsed locally and never uploaded to external application servers."
             },
             {
               q: "How can I improve my ATS score for free?",
-              a: "You can improve your score by tailoring your resume to the job description, inserting relevant keywords from the job listing, avoiding complex formatting like columns or text boxes, and fixing any spelling or grammatical errors."
+              a: "Tailor your resume to the target job description, insert relevant keywords naturally into bullet points, avoid complex multi-column formatting, and quantify achievements with concrete numbers."
             },
             {
               q: "Do I need to sign up to use the ATS resume checker?",
@@ -585,22 +714,22 @@ export function Analyzer({
             return (
               <div 
                 key={index} 
-                className="border border-slate-800/80 bg-slate-900/40 rounded-2xl overflow-hidden backdrop-blur-sm transition-all duration-200"
+                className="border border-[#E2D9C8] dark:border-[#223446] bg-[#FFFDF8] dark:bg-[#162432] rounded-2xl overflow-hidden shadow-sm transition-all"
               >
                 <button
                   type="button"
                   onClick={() => setOpenFaqIndex(isOpen ? null : index)}
-                  className="w-full p-4 flex items-center justify-between text-left font-sans text-sm font-semibold text-slate-200 hover:text-white transition-colors"
+                  className="w-full p-4 flex items-center justify-between text-left font-sans text-sm font-semibold text-[#13232F] dark:text-slate-200 hover:text-[#D99A2B] transition-colors"
                 >
                   <span>{faq.q}</span>
                   {isOpen ? (
-                    <ChevronUp className="w-4 h-4 text-amber-400 shrink-0" />
+                    <ChevronUp className="w-4 h-4 text-[#D99A2B] shrink-0" />
                   ) : (
-                    <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
+                    <ChevronDown className="w-4 h-4 text-[#52667A] shrink-0" />
                   )}
                 </button>
                 {isOpen && (
-                  <div className="px-4 pb-4 font-sans text-xs sm:text-sm text-slate-400 leading-relaxed border-t border-slate-800/40 pt-3 animate-fade-down">
+                  <div className="px-4 pb-4 font-sans text-xs sm:text-sm text-[#52667A] dark:text-slate-400 leading-relaxed border-t border-[#EDE5D6] dark:border-[#223446] pt-3 animate-fade-down">
                     {faq.a}
                   </div>
                 )}
@@ -610,15 +739,22 @@ export function Analyzer({
         </div>
       </section>
 
-      {/* Privacy Guarantee Footer */}
-      <footer className="max-w-4xl mx-auto px-4 pt-12 border-t border-slate-800/60 text-center space-y-2">
-        <p className="text-xs font-mono text-slate-500 leading-relaxed max-w-2xl mx-auto">
-          "Your API key never touches our servers — it lives only in this browser tab. Your PDF is parsed locally and never uploaded. The only network call is directly from your browser to OpenAI/Google."
+      {/* Footer */}
+      <footer className="max-w-4xl mx-auto px-4 pt-12 border-t border-[#E2D9C8] dark:border-[#223446] text-center space-y-3">
+        <div className="flex items-center justify-center gap-2">
+          <BrandMark size={20} />
+          <span className="font-heading font-extrabold text-sm text-[#13232F] dark:text-white">
+            Resume<span className="text-[#D99A2B]">Intelligence</span>
+          </span>
+        </div>
+        <p className="text-xs font-mono text-[#52667A] dark:text-slate-500 leading-relaxed max-w-xl mx-auto">
+          Quiet Signal · Document Review Workspace · BYOK Architecture
         </p>
-        <p className="text-[11px] font-mono text-slate-600">
-          Built with React 18 · Tailwind CSS · pdfjs-dist · jspdf · IndexedDB
+        <p className="text-[11px] font-mono text-[#8295A6] dark:text-slate-600">
+          Built with Next.js 14 · React 18 · Tailwind CSS · pdfjs-dist · IndexedDB
         </p>
       </footer>
+
     </div>
   );
 }

@@ -57,38 +57,38 @@ export function ApiKeyGuideModal({
 
   const getProviderIcon = (key) => {
     switch (key) {
-      case 'gemini': return <Cpu className="w-4 h-4 text-amber-400" />;
-      case 'groq': return <Zap className="w-4 h-4 text-amber-400" />;
-      case 'mistral': return <Flame className="w-4 h-4 text-amber-400" />;
-      default: return <Sparkles className="w-4 h-4 text-amber-400" />;
+      case 'gemini': return <Cpu className="w-4 h-4 text-[#D99A2B]" />;
+      case 'groq': return <Zap className="w-4 h-4 text-[#D99A2B]" />;
+      case 'mistral': return <Flame className="w-4 h-4 text-[#D99A2B]" />;
+      default: return <Sparkles className="w-4 h-4 text-[#D99A2B]" />;
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#13232F]/70 backdrop-blur-md overflow-y-auto">
       {/* Modal Dialog Box */}
       <div 
-        className="relative w-full max-w-2xl bg-slate-900 border border-slate-700/80 rounded-3xl shadow-2xl overflow-hidden my-auto animate-fade-up"
+        className="relative w-full max-w-2xl bg-[#FFFDF8] dark:bg-[#162432] border border-[#E2D9C8] dark:border-[#223446] rounded-3xl shadow-2xl overflow-hidden my-auto animate-fade-up"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header Strip */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-slate-800 bg-slate-950/50">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-[#E2D9C8] dark:border-[#223446] bg-[#F6F2EA]/60 dark:bg-[#0F1720]/60">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-amber-500/10 rounded-2xl border border-amber-500/20 text-amber-400">
+            <div className="p-2.5 bg-[#FAF3E5] dark:bg-[#272216] rounded-2xl border border-[#E8C98F] dark:border-[#5C4722] text-[#D99A2B]">
               <Key className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-heading font-bold text-white flex items-center gap-2">
-                API Key Guide & Free Tools
+              <h2 className="text-lg font-heading font-bold text-[#13232F] dark:text-white flex items-center gap-2">
+                API Key Retrieval Guide
               </h2>
-              <p className="text-xs text-slate-400 font-sans">
-                Get your direct API keys from providers to run 100% private, client-side resume scans.
+              <p className="text-xs text-[#52667A] dark:text-slate-400 font-sans">
+                Obtain your direct API keys to run 100% private, client-side resume reviews.
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-white hover:bg-slate-800/80 rounded-xl transition-all"
+            className="p-2 text-[#52667A] dark:text-slate-400 hover:text-[#13232F] dark:hover:text-white rounded-xl transition-all"
             title="Close modal"
           >
             <X className="w-5 h-5" />
@@ -96,7 +96,7 @@ export function ApiKeyGuideModal({
         </div>
 
         {/* Provider Tabs */}
-        <div className="flex items-center gap-1.5 px-6 pt-4 border-b border-slate-800/80 bg-slate-900/60 overflow-x-auto no-scrollbar">
+        <div className="flex items-center gap-1.5 px-6 pt-4 border-b border-[#E2D9C8] dark:border-[#223446] bg-[#F6F2EA]/40 dark:bg-[#0F1720]/40 overflow-x-auto no-scrollbar">
           {Object.keys(PROVIDER_HELP).map((providerKey) => {
             const p = PROVIDER_HELP[providerKey];
             const isActive = activeTab === providerKey;
@@ -109,14 +109,14 @@ export function ApiKeyGuideModal({
                 }}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-t-xl text-xs font-mono font-semibold transition-all shrink-0 border-t border-x ${
                   isActive
-                    ? 'bg-slate-950 text-white border-slate-700 border-b-slate-950 shadow-md'
-                    : 'bg-transparent text-slate-400 border-transparent hover:text-slate-200 hover:bg-slate-800/40'
+                    ? 'bg-[#FFFDF8] dark:bg-[#162432] text-[#13232F] dark:text-white border-[#E2D9C8] dark:border-[#223446] border-b-transparent shadow-sm'
+                    : 'bg-transparent text-[#52667A] dark:text-slate-400 border-transparent hover:text-[#13232F] dark:hover:text-slate-200'
                 }`}
               >
                 {getProviderIcon(providerKey)}
                 <span>{p.name}</span>
                 {p.isFree && (
-                  <span className="px-1.5 py-0.5 text-[9px] uppercase tracking-wider font-bold bg-emerald-500/20 text-emerald-300 rounded-full border border-emerald-500/30">
+                  <span className="px-1.5 py-0.5 text-[9px] uppercase tracking-wider font-bold bg-[#EBF4EE] dark:bg-[#13261C] text-[#3B7A57] dark:text-[#4E9A70] rounded-full border border-[#A8D0B5] dark:border-[#245037]">
                     Free
                   </span>
                 )}
@@ -126,45 +126,45 @@ export function ApiKeyGuideModal({
         </div>
 
         {/* Tab Body */}
-        <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar bg-slate-950/40">
+        <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
           {/* Main Provider Callout Banner */}
-          <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-900/90 to-amber-950/20 border border-slate-800 space-y-3">
+          <div className="p-4 rounded-2xl bg-[#FAF3E5]/60 dark:bg-[#272216]/60 border border-[#E8C98F] dark:border-[#5C4722] space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="px-2.5 py-1 text-[11px] font-mono font-bold text-amber-300 bg-amber-500/10 border border-amber-500/20 rounded-lg flex items-center gap-1.5">
+              <span className="px-2.5 py-1 text-[11px] font-mono font-bold text-[#D99A2B] bg-[#FFFDF8] dark:bg-[#162432] border border-[#E8C98F] dark:border-[#5C4722] rounded-lg flex items-center gap-1.5">
                 <Info className="w-3.5 h-3.5" />
                 {info.badge}
               </span>
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleCopyPortalUrl}
-                  className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-mono transition-colors flex items-center gap-1"
+                  className="px-2.5 py-1 bg-[#FFFDF8] dark:bg-[#162432] hover:bg-[#F6F2EA] text-[#52667A] dark:text-slate-300 rounded-lg text-xs font-mono transition-colors flex items-center gap-1 border border-[#E2D9C8] dark:border-[#223446]"
                   title="Copy link to portal"
                 >
-                  {copiedLink ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                  {copiedLink ? <Check className="w-3 h-3 text-[#3B7A57]" /> : <Copy className="w-3 h-3" />}
                   <span>{copiedLink ? 'Copied' : 'Copy Link'}</span>
                 </button>
                 <a
                   href={info.portalUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono font-bold rounded-xl text-xs flex items-center gap-1.5 transition-all shadow-md shadow-amber-500/20"
+                  className="px-3.5 py-1.5 btn-saffron font-mono font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm"
                 >
                   <span>Open {info.portalName}</span>
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               </div>
             </div>
-            <p className="text-xs text-slate-300 font-sans leading-relaxed">
+            <p className="text-xs text-[#13232F] dark:text-slate-300 font-sans leading-relaxed">
               {info.description}
             </p>
           </div>
 
           {/* Key Format Cheat Sheet */}
-          <div className="p-3.5 bg-slate-900/90 border border-slate-800 rounded-xl flex items-start gap-3">
-            <Key className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+          <div className="p-3.5 bg-[#F6F2EA] dark:bg-[#0F1720] border border-[#EDE5D6] dark:border-[#1C2D3E] rounded-xl flex items-start gap-3">
+            <Key className="w-4 h-4 text-[#D99A2B] shrink-0 mt-0.5" />
             <div className="text-xs space-y-0.5">
-              <span className="font-mono font-bold text-slate-200">Expected Key Format: </span>
-              <span className="font-mono text-amber-300 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">
+              <span className="font-mono font-bold text-[#13232F] dark:text-slate-200">Expected Key Format: </span>
+              <span className="font-mono text-[#D99A2B] bg-[#FFFDF8] dark:bg-[#162432] px-2 py-0.5 rounded border border-[#E2D9C8] dark:border-[#223446]">
                 {info.keyFormat}
               </span>
             </div>
@@ -172,14 +172,14 @@ export function ApiKeyGuideModal({
 
           {/* Step by Step Guide */}
           <div className="space-y-3">
-            <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-              <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
-              Step-by-Step Key Retrieval Instructions
+            <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-[#52667A] dark:text-slate-400 flex items-center gap-2">
+              <ArrowRight className="w-3.5 h-3.5 text-[#D99A2B]" />
+              Step-by-Step Instructions
             </h3>
-            <ol className="space-y-2.5">
+            <ol className="space-y-2">
               {info.steps.map((step, index) => (
-                <li key={index} className="flex items-start gap-3 text-xs text-slate-300 font-sans bg-slate-900/60 p-3 rounded-xl border border-slate-800/80">
-                  <span className="w-5 h-5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 font-mono font-bold text-[11px] flex items-center justify-center shrink-0">
+                <li key={index} className="flex items-start gap-3 text-xs text-[#13232F] dark:text-slate-300 font-sans bg-[#F6F2EA]/60 dark:bg-[#0F1720]/60 p-3 rounded-xl border border-[#EDE5D6] dark:border-[#1C2D3E]">
+                  <span className="w-5 h-5 rounded-lg bg-[#FAF3E5] dark:bg-[#272216] border border-[#E8C98F] dark:border-[#5C4722] text-[#D99A2B] font-mono font-bold text-[11px] flex items-center justify-center shrink-0">
                     {index + 1}
                   </span>
                   <span className="leading-snug pt-0.5">{step}</span>
@@ -189,10 +189,10 @@ export function ApiKeyGuideModal({
           </div>
 
           {/* Interactive API Key Tester & Applier */}
-          <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl space-y-3">
-            <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-              <Activity className="w-3.5 h-3.5 text-amber-400" />
-              Test & Save Key Directly
+          <div className="p-4 bg-[#F6F2EA]/80 dark:bg-[#0F1720]/80 border border-[#E2D9C8] dark:border-[#223446] rounded-2xl space-y-3">
+            <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-[#13232F] dark:text-slate-200 flex items-center gap-2">
+              <Activity className="w-3.5 h-3.5 text-[#D99A2B]" />
+              Test &amp; Save Key Directly
             </h3>
 
             <form onSubmit={handleTestKey} className="space-y-3">
@@ -204,16 +204,16 @@ export function ApiKeyGuideModal({
                     setTestKey(e.target.value);
                     setVerificationResult(null);
                   }}
-                  placeholder={`Paste your ${info.name} key here...`}
-                  className="flex-1 px-3.5 py-2 bg-slate-950 border border-slate-700/80 rounded-xl text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/80 focus:ring-1 focus:ring-amber-500/50"
+                  placeholder={`Paste your ${info.name} key here…`}
+                  className="flex-1 px-3.5 py-2 bg-[#FFFDF8] dark:bg-[#162432] border border-[#E2D9C8] dark:border-[#223446] rounded-xl text-xs font-mono text-[#13232F] dark:text-white placeholder-slate-400 focus:outline-none focus:border-[#D99A2B]"
                 />
                 <button
                   type="submit"
                   disabled={isVerifying || !testKey.trim()}
-                  className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-amber-400 border border-slate-700 rounded-xl text-xs font-mono font-semibold transition-all shrink-0 flex items-center gap-1.5"
+                  className="px-3.5 py-2 bg-[#FFFDF8] dark:bg-[#162432] hover:bg-[#FAF3E5] disabled:opacity-50 text-[#D99A2B] border border-[#E2D9C8] dark:border-[#223446] rounded-xl text-xs font-mono font-semibold transition-all shrink-0 flex items-center gap-1.5"
                 >
                   {isVerifying ? (
-                    <span>Testing...</span>
+                    <span>Testing…</span>
                   ) : (
                     <>
                       <Activity className="w-3.5 h-3.5" />
@@ -227,13 +227,13 @@ export function ApiKeyGuideModal({
               {verificationResult && (
                 <div className={`p-3 rounded-xl border flex items-center gap-2 text-xs font-mono ${
                   verificationResult.ok 
-                    ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300'
-                    : 'bg-red-950/40 border-red-500/40 text-red-300'
+                    ? 'bg-[#EBF4EE] border-[#A8D0B5] text-[#3B7A57] dark:bg-[#13261C] dark:text-[#4E9A70]'
+                    : 'bg-[#FBF0EE] border-[#E8B8B0] text-[#B85242] dark:bg-[#2A1715] dark:text-[#D96957]'
                 }`}>
                   {verificationResult.ok ? (
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <CheckCircle2 className="w-4 h-4 text-[#3B7A57] shrink-0" />
                   ) : (
-                    <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+                    <AlertCircle className="w-4 h-4 text-[#B85242] shrink-0" />
                   )}
                   <span>{verificationResult.message}</span>
                 </div>
@@ -243,23 +243,23 @@ export function ApiKeyGuideModal({
         </div>
 
         {/* Footer Actions */}
-        <div className="px-6 py-4 border-t border-slate-800 bg-slate-950/60 flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-1.5 text-[11px] font-mono text-slate-400">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+        <div className="px-6 py-4 border-t border-[#E2D9C8] dark:border-[#223446] bg-[#F6F2EA]/40 dark:bg-[#0F1720]/40 flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-1.5 text-[11px] font-mono text-[#52667A] dark:text-slate-400">
+            <ShieldCheck className="w-3.5 h-3.5 text-[#3B7A57]" />
             <span>Key stored only in browser sessionStorage</span>
           </div>
 
           <div className="flex items-center gap-2">
             <button
               onClick={onClose}
-              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-mono font-medium transition-all"
+              className="px-4 py-2 bg-[#F6F2EA] dark:bg-[#1C2D3E] text-[#52667A] dark:text-slate-300 rounded-xl text-xs font-mono font-medium hover:bg-[#EDE5D6]"
             >
               Cancel
             </button>
             <button
               onClick={handleApplyAndClose}
               disabled={!testKey.trim()}
-              className="px-4 py-2 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-mono font-bold rounded-xl text-xs transition-all shadow-md shadow-amber-500/20"
+              className="px-4 py-2 btn-saffron font-mono font-bold rounded-xl text-xs disabled:opacity-50 shadow-sm"
             >
               Use This Key in App
             </button>
