@@ -19,6 +19,16 @@
 @tailwind utilities;
 
 @layer base {
+  ::selection {
+    background-color: rgba(217, 154, 43, 0.25);
+    color: #13232F;
+  }
+
+  .dark ::selection {
+    background-color: rgba(217, 154, 43, 0.35);
+    color: #F0F4F8;
+  }
+
   :root {
     --bg-page: #F6F2EA;
     --bg-paper: #FFFDF8;
