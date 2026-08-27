@@ -31,7 +31,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -115,7 +115,7 @@ export default function RootLayout({ children }) {
           }}
         />
       </head>
-      <body className="bg-[#0a0d14] text-slate-100 min-h-screen font-sans antialiased selection:bg-amber-500/30 selection:text-amber-200">
+      <body className="bg-[#F6F2EA] dark:bg-[#0F1720] text-[#13232F] dark:text-slate-100 min-h-screen font-sans antialiased selection:bg-amber-500/30 selection:text-amber-200 transition-colors duration-300">
         {children}
       </body>
     </html>
