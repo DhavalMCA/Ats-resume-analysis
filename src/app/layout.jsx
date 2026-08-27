@@ -115,7 +115,7 @@ export default function RootLayout({ children }) {
           }}
         />
       </head>
-      <body className="bg-[#F6F2EA] dark:bg-[#0F1720] text-[#13232F] dark:text-slate-100 min-h-screen font-sans antialiased selection:bg-amber-500/30 selection:text-amber-200 transition-colors duration-300">
+      <body className="bg-[#F6F2EA] dark:bg-[#0F1720] text-[#13232F] dark:text-slate-100 min-h-screen font-sans antialiased selection:bg-amber-500/25 selection:text-slate-900 dark:selection:bg-amber-500/30 dark:selection:text-amber-200 transition-colors duration-300">
         {children}
       </body>
     </html>
